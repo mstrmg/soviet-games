@@ -22,7 +22,8 @@ manager
   .register('pravda-editor', () => import('./games/pravda-editor/index.js'))
   .register('potemkin-village', () => import('./games/potemkin-village/index.js'))
   .register('sparrow-campaign', () => import('./games/sparrow-campaign/index.js'))
-  .register('backyard-furnace', () => import('./games/backyard-furnace/index.js'));
+  .register('backyard-furnace', () => import('./games/backyard-furnace/index.js'))
+  .register('launch-a-satellite', () => import('./games/launch-a-satellite/index.js'));
 for (const d of ALL_DEPARTMENTS) {
   if (!manager.has(d.id)) manager.register(d.id, () => import('./wings/placeholders.js').then((m) => ({ default: m.placeholderFor(d.id) })));
 }

@@ -39,6 +39,9 @@ src/
     nail-quota/           Soviet wing, game 1
     pravda-editor/        Soviet wing, game 2
     potemkin-village/     Soviet wing, game 3
+    backyard-furnace/     China wing, game 1 (levels.js holds the weeks, items and words)
+    launch-a-satellite/   China wing, game 2 (levels.js holds the seasons, rivals and words)
+    sparrow-campaign/     China wing, game 3 (levels.js holds the days, quotas and words)
   shared/
     sceneManager.js       one scene at a time; fade, dispose, load
     scope.js              tracks listeners/timers/resources for auto-cleanup

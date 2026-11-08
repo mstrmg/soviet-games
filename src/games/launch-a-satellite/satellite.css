@@ -1,0 +1,44 @@
+/* ---------- Launch a Satellite ---------- */
+.ls-side {
+  position: absolute; left: 24px; top: 140px; width: 280px; background: rgba(22,21,20,0.88); padding: 14px 16px 16px;
+  box-shadow: 6px 6px 0 var(--red);
+}
+.ls-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: var(--grey-light, #b9b4aa); text-transform: uppercase; margin-top: 12px; }
+.ls-lab:first-child { margin-top: 0; }
+.ls-big { font: 34px/1.1 var(--display); color: var(--cream); letter-spacing: 0.03em; }
+.ls-note { font: italic 12px/1.35 var(--type); color: var(--grey-light, #b9b4aa); margin-top: 2px; }
+.ls-mid { font: 20px/1.2 var(--display); color: var(--gold); letter-spacing: 0.04em; }
+.ls-mid.empty { color: var(--red); }
+.ls-flags { display: flex; gap: 8px; margin-top: 6px; }
+.ls-flag { width: 26px; height: 18px; border: 2px dashed rgba(242,232,213,0.35); }
+.ls-flag.on { background: #f4f2ea; border: 2px solid #f4f2ea; }
+
+.ls-announce {
+  position: absolute; top: 112px; left: 50%; transform: translateX(-50%); max-width: min(760px, 90vw);
+  background: var(--red); color: var(--cream); font: 24px/1.2 var(--display); letter-spacing: 0.06em; text-align: center;
+  padding: 8px 18px; opacity: 0; pointer-events: none; box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.ls-announce.show { animation: lsAnnounce 3.6s forwards; }
+@keyframes lsAnnounce { 0% { opacity: 0; transform: translate(-50%, -8px); } 6%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+.ls-panel {
+  position: absolute; left: 50%; bottom: 20px; width: min(560px, 92vw); transform: translate(-50%, 140%);
+  background: var(--paper); color: var(--ink); padding: 14px 20px 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.4), 8px 8px 0 var(--black);
+  transition: transform 0.45s cubic-bezier(.2,.9,.3,1.2); text-align: center;
+}
+.ls-panel.open { transform: translate(-50%, 0); }
+.ls-panel .ls-lab { color: var(--grey-dark, #45433f); }
+.ls-readout { display: flex; align-items: baseline; justify-content: center; gap: 10px; }
+.ls-num { font: 58px/1 var(--display); letter-spacing: 0.03em; min-width: 3ch; }
+.ls-unit { font: 600 14px var(--body); letter-spacing: 0.16em; }
+.ls-panel.lead .ls-num { color: var(--red); }
+.ls-panel.low .ls-num { color: var(--grey, #7d7a74); }
+.ls-slider { width: 100%; margin: 8px 0 10px; accent-color: var(--red); }
+.ls-quick { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.ls-quick .btn { font-size: 13px; padding: 6px 10px; }
+.ls-small { font: 9px/1.3 var(--body); letter-spacing: 0.04em; color: var(--grey, #7d7a74); margin-top: 8px; }
+
+.layer:has(.memo-wrap) .ls-panel, .layer:has(.np-wrap) .ls-panel { visibility: hidden; }
+
+/* the granary figure, set in very small type */
+.ls-paper .np-sidebar li:last-child { font-size: 9px; opacity: 0.8; }

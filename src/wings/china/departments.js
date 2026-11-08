@@ -16,7 +16,7 @@ export const DEPARTMENTS = [
     title: 'LAUNCH A SATELLITE',
     dept: 'Bureau of Agricultural Estimates',
     blurb: 'Report the biggest harvest in the province. The state will collect exactly what you report.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · THREE SEASONS',
     medal: 'Medal of the Record Harvest',
     poster: { motif: 'wheat', slogan: 'RECORD YIELD!', sub: 'AS REPORTED' },
   },
