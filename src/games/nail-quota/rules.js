@@ -200,7 +200,7 @@ export function fmtMeasured(type, v) {
   if (type === 'length') return v >= 1000 ? `${fmtNum(v / 1000)} km` : `${fmtNum(v)} m`;
   if (type === 'count') return `${fmtInt(v)} nails`;
   if (type === 'crates') return `${fmtInt(v)} crates`;
-  if (type === 'saving') return `${fmtNum(v)} kg saved`;
+  if (type === 'saving') return `${fmtNum(v)} kg`;
   if (type === 'both') return `${fmtNum(v)}%`;
   if (type === 'need') return 'unmeasurable';
   return String(v);

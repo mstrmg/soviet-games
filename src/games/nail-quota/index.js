@@ -181,7 +181,7 @@ export default function createNailQuota() {
     if (lv.quota.sameAsLast && prev?.finalQuota) lv.quota = { ...prev.finalQuota };
     if (lv.quota.ratchet) {
       const same = prev && prev.quotaType === lv.quota.type && prev.measured > 0;
-      if (same) lv.quota.target = Math.max(1, Math.round(prev.measured * lv.quota.ratchet));
+      if (same) lv.quota.target = +(prev.measured * lv.quota.ratchet).toPrecision(3);
       vars.last = fmtMeasured(lv.quota.type, same ? prev.measured : lv.quota.target / lv.quota.ratchet);
     }
     vars.target = fmtMeasured(lv.quota.type, lv.quota.target);
