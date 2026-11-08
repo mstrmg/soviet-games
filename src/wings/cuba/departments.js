@@ -1,5 +1,5 @@
 // CUBA WING · Ministry of Permanent Revolution. Same pattern as hub/departments.js.
-// The delegation is still arriving: the wing is locked in the Hall until its lobby is built.
+// The three games are placeholders (UNDER CONSTRUCTION) until each is built.
 export const DEPARTMENTS = [
   {
     id: 'spare-parts',

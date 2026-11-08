@@ -34,11 +34,10 @@ export const WINGS = [
     colors: { field: '#2a2a2a', mark: '#d4a72c' },
     ...GDR,
   },
-  // Wings marked `arriving` are locked in the Hall ("delegation arriving shortly") until their
-  // lobby is built. Names and colours live here so they are easy to change.
+  // A wing marked `arriving: true` is locked in the Hall ("delegation arriving shortly") until
+  // its lobby is built. Names and colours live here so they are easy to change.
   {
     id: 'dprk',
-    arriving: true,
     country: "DEMOCRATIC PEOPLE'S REPUBLIC OF KOREA",
     short: 'NORTH KOREA',
     ministry: 'Ministry of Glorious Firsts',
@@ -49,7 +48,6 @@ export const WINGS = [
   },
   {
     id: 'cuba',
-    arriving: true,
     country: 'REPUBLIC OF CUBA',
     short: 'CUBA',
     ministry: 'Ministry of Permanent Revolution',

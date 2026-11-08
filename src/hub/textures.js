@@ -352,6 +352,74 @@ export function posterTexture(dept) {
         ctx.arc(5, -5, 35, Math.PI, Math.PI * 2.2);
         ctx.stroke();
         ctx.fillRect(-60, 80, 120, 16);
+      } else if (motif === 'flag') {
+        // a golf flag on the green, a ball already in the hole
+        ctx.fillRect(-6, -130, 12, 230);
+        ctx.fillStyle = C.red;
+        ctx.beginPath();
+        ctx.moveTo(6, -130);
+        ctx.lineTo(110, -100);
+        ctx.lineTo(6, -70);
+        ctx.fill();
+        ctx.fillStyle = C.black;
+        ctx.beginPath();
+        ctx.ellipse(0, 100, 60, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = C.cream;
+        ctx.beginPath();
+        ctx.arc(14, 94, 11, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (motif === 'cards') {
+        // a stadium of coloured cards making one face of a star
+        for (let gy = 0; gy < 6; gy++) {
+          for (let gx = 0; gx < 8; gx++) {
+            const x = -120 + gx * 30;
+            const y = -90 + gy * 30;
+            const inStar = Math.hypot(x + 15, y + 15 - 0) < 70 - (gx + gy) % 3 * 8;
+            ctx.fillStyle = inStar ? C.red : gx % 2 ? C.black : '#3a3a3a';
+            ctx.fillRect(x, y, 26, 26);
+          }
+        }
+      } else if (motif === 'bulb') {
+        ctx.beginPath();
+        ctx.arc(0, -40, 70, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-32, 20, 64, 60);
+        ctx.fillStyle = C.gold;
+        ctx.fillRect(-32, 34, 64, 8);
+        ctx.fillRect(-32, 54, 64, 8);
+        ctx.strokeStyle = C.black;
+        ctx.lineWidth = 8;
+        for (let k = 0; k < 8; k++) {
+          const a = (k / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * 90, -40 + Math.sin(a) * 90);
+          ctx.lineTo(Math.cos(a) * 125, -40 + Math.sin(a) * 125);
+          ctx.stroke();
+        }
+      } else if (motif === 'book') {
+        // a ration book, open, every line ticked
+        ctx.fillRect(-120, -80, 240, 170);
+        ctx.fillStyle = C.cream;
+        ctx.fillRect(-110, -70, 105, 150);
+        ctx.fillRect(5, -70, 105, 150);
+        ctx.strokeStyle = C.black;
+        ctx.lineWidth = 5;
+        for (let k = 0; k < 6; k++) {
+          for (const x0 of [-100, 15]) {
+            ctx.beginPath();
+            ctx.moveTo(x0, -50 + k * 22);
+            ctx.lineTo(x0 + 60, -50 + k * 22);
+            ctx.stroke();
+            ctx.strokeStyle = C.red;
+            ctx.beginPath();
+            ctx.moveTo(x0 + 70, -54 + k * 22);
+            ctx.lineTo(x0 + 76, -48 + k * 22);
+            ctx.lineTo(x0 + 88, -62 + k * 22);
+            ctx.stroke();
+            ctx.strokeStyle = C.black;
+          }
+        }
       } else {
         // microphone
         ctx.beginPath();

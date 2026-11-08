@@ -205,6 +205,7 @@ export function createWingLobby(cfg) {
 
         // --- the clock, the queue and the board ---
         s.features.update(dt, admitted.has(WING));
+        refs.dress?.tick?.(dt, time);
 
         // --- the leak ---
         const dr = refs.drip;

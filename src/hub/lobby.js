@@ -509,6 +509,9 @@ export function buildLobby(scene, departments, { medals = {}, theme = {} } = {})
   scene.add(ripple);
   refs.drip = { drop, ripple, top: height - 0.1, bottom: 0.38, y: height - 0.1, v: 0, wait: 1.2 };
 
+  // ---- Wing-specific dressing (optional): theme.dress(scene, kit) may return { tick(dt, t) } ----
+  refs.dress = theme.dress ? theme.dress(scene, { ROOM, mats, box, shadowed, portraitTexture, signTexture }) || null : null;
+
   // ---- Dust in the light --------------------------------------------------------
   const dustCount = 350;
   const dustPos = new Float32Array(dustCount * 3);

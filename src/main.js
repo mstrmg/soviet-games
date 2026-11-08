@@ -18,6 +18,8 @@ manager
   .register('ussr', () => import('./hub/index.js'))
   .register('china', () => import('./wings/china/index.js'))
   .register('gdr', () => import('./wings/gdr/index.js'))
+  .register('dprk', () => import('./wings/dprk/index.js'))
+  .register('cuba', () => import('./wings/cuba/index.js'))
   .register('nail-quota', () => import('./games/nail-quota/index.js'))
   .register('pravda-editor', () => import('./games/pravda-editor/index.js'))
   .register('potemkin-village', () => import('./games/potemkin-village/index.js'))
