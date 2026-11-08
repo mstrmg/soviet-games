@@ -342,6 +342,10 @@ export default function createNailQuota() {
     const ending = ENDINGS.newspaper[key];
     const vars = { official: fmtNum(official), citizens: fmtNum(citizens), years };
     save.awardMedal(GAME_ID, { official: Math.round(official), citizens: Math.round(citizens), ending: key });
+    // the Plan is the pass mark; what the citizens got does not enter into it
+    const runLabel = `Five-Year Plan: ${Math.round(official)}%`;
+    if (official >= 100) save.recordSuccess(GAME_ID, runLabel);
+    else save.recordFailure(GAME_ID, runLabel);
     save.setGame(GAME_ID, { levelIndex: 0, results: [], lastEnding: key });
     audio.fanfare();
     const photo = manager.snapshot();

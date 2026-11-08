@@ -521,3 +521,219 @@ export function bannerTexture(text) {
     speckle(ctx, w, h, 0.1, r, 0.01);
   });
 }
+
+// ---- Live textures: drawn once, redrawn when the lobby's records change ----------
+
+/** A canvas texture you can redraw: returns { texture, draw(fn) }. */
+export function liveTexture(width, height) {
+  const texture = canvasTexture(width, height, () => {});
+  const canvas = texture.image;
+  return {
+    texture,
+    draw(fn) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, width, height);
+      fn(ctx, width, height);
+      texture.needsUpdate = true;
+    },
+  };
+}
+
+/** Painted number card for the queue stand. */
+export function drawQueueCard(ctx, w, h, { title, number, foot }) {
+  const r = rng(number);
+  ctx.fillStyle = C.cream;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = C.black;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(8, 8, w - 16, h - 16);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = C.red;
+  ctx.font = `600 ${fitText(ctx, title, w - 60, 30, FONTS.body, '600')}px ${FONTS.body}`;
+  ctx.fillText(title, w / 2, h * 0.2);
+  ctx.fillStyle = C.black;
+  ctx.font = `${fitText(ctx, number, w - 50, 120, FONTS.display)}px ${FONTS.display}`;
+  ctx.fillText(number, w / 2, h * 0.56);
+  ctx.fillStyle = C.grey;
+  ctx.font = `600 ${fitText(ctx, foot, w - 60, 20, FONTS.body, '600')}px ${FONTS.body}`;
+  ctx.fillText(foot, w / 2, h * 0.86);
+  speckle(ctx, w, h, 0.12, r, 0.02);
+}
+
+/** Brass plate under the clock. */
+export function drawClockPlate(ctx, w, h, lines) {
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, '#c9a24a');
+  g.addColorStop(0.5, '#e2c06a');
+  g.addColorStop(1, '#9c7a2e');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(60,40,10,0.6)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(6, 6, w - 12, h - 12);
+  for (const [x, y] of [[18, 18], [w - 18, 18], [18, h - 18], [w - 18, h - 18]]) {
+    ctx.fillStyle = '#6b5420';
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#2a1e08';
+  ctx.font = `600 ${fitText(ctx, lines[0], w - 60, 24, FONTS.body, '600')}px ${FONTS.body}`;
+  ctx.fillText(lines[0], w / 2, h * 0.32);
+  ctx.font = `${fitText(ctx, lines[1], w - 60, 46, FONTS.display)}px ${FONTS.display}`;
+  ctx.fillText(lines[1], w / 2, h * 0.68);
+}
+
+/** Layout of the honours board, shared by the drawing and the spotlight. */
+export const BOARD_LAYOUT = { w: 1024, h: 1200, cols: 4, rows: 3, top: 210, pad: 34, gap: 22 };
+
+export function boardCell(k) {
+  const L = BOARD_LAYOUT;
+  const cw = (L.w - L.pad * 2 - L.gap * (L.cols - 1)) / L.cols;
+  const ch = (L.h - L.top - L.pad - L.gap * (L.rows - 1)) / L.rows;
+  const col = k % L.cols;
+  const row = Math.floor(k / L.cols);
+  return { x: L.pad + col * (cw + L.gap), y: L.top + row * (ch + L.gap), w: cw, h: ch };
+}
+
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+function sitter(ctx, x, y, w, h, r) {
+  // background
+  const bgs = ['#5d6152', '#5a4e44', '#4b5560', '#615a46'];
+  ctx.fillStyle = bgs[Math.floor(r() * bgs.length)];
+  ctx.fillRect(x, y, w, h);
+  const cx = x + w / 2;
+  // shoulders
+  ctx.fillStyle = ['#2b2a27', '#3d3a36', '#4a4238', '#2f3236'][Math.floor(r() * 4)];
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.08, y + h);
+  ctx.quadraticCurveTo(cx, y + h * 0.5, x + w * 0.92, y + h);
+  ctx.fill();
+  // head
+  ctx.fillStyle = ['#c9a587', '#b48c6e', '#d6b597'][Math.floor(r() * 3)];
+  ctx.beginPath();
+  ctx.ellipse(cx, y + h * 0.42, w * 0.17, h * 0.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // headwear, or hair
+  const hat = r();
+  ctx.fillStyle = hat < 0.35 ? '#5a4a3c' : hat < 0.6 ? C.red : '#2a2522';
+  if (hat < 0.35) ctx.fillRect(cx - w * 0.21, y + h * 0.17, w * 0.42, h * 0.12);
+  else if (hat < 0.6) {
+    ctx.beginPath();
+    ctx.moveTo(cx - w * 0.2, y + h * 0.36);
+    ctx.quadraticCurveTo(cx, y + h * 0.08, cx + w * 0.2, y + h * 0.36);
+    ctx.fill();
+  } else ctx.fillRect(cx - w * 0.16, y + h * 0.2, w * 0.32, h * 0.07);
+  // one medal
+  ctx.fillStyle = C.gold;
+  ctx.beginPath();
+  ctx.arc(cx - w * 0.2, y + h * 0.84, w * 0.05, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/**
+ * The Heroes of Labour board: title, then 4 × 3 frames, newest first.
+ * entries: [{ kind, at, label, medal }]
+ */
+export function drawHonourBoard(ctx, w, h, entries, text, citizenNo) {
+  const r = rng(77);
+  // board: red cloth panel in a wooden frame
+  ctx.fillStyle = '#3a2418';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = C.redDark;
+  ctx.fillRect(18, 18, w - 36, h - 36);
+  speckle(ctx, w, h, 0.1, r, 0.03);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = C.gold;
+  ctx.font = `${fitText(ctx, text.title, w - 120, 110, FONTS.display)}px ${FONTS.display}`;
+  ctx.fillText(text.title, w / 2, 92);
+  ctx.font = `600 34px ${FONTS.body}`;
+  ctx.fillText(`★  ${text.subtitle}  ★`, w / 2, 166);
+
+  for (let k = 0; k < BOARD_LAYOUT.cols * BOARD_LAYOUT.rows; k++) {
+    const c = boardCell(k);
+    const e = entries[k];
+    // gilt frame
+    ctx.fillStyle = '#b08d3c';
+    ctx.fillRect(c.x, c.y, c.w, c.h);
+    ctx.fillStyle = '#7a5f22';
+    ctx.fillRect(c.x + 8, c.y + 8, c.w - 16, c.h - 16);
+    const px = c.x + 14;
+    const py = c.y + 14;
+    const pw = c.w - 28;
+    const ph = c.h * 0.56;
+    const capY = py + ph + 8;
+    ctx.fillStyle = C.cream;
+    ctx.fillRect(px, capY, pw, c.h - (capY - c.y) - 14);
+    const lines = [];
+    if (!e) {
+      ctx.fillStyle = '#4a1014';
+      ctx.fillRect(px, py, pw, ph);
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = C.grey;
+      ctx.font = `600 ${fitText(ctx, text.pending, pw - 10, 22, FONTS.body, '600')}px ${FONTS.body}`;
+      ctx.fillText(text.pending, c.x + c.w / 2, capY + 45);
+      ctx.restore();
+      continue;
+    }
+    const er = rng(hashStr(e.at + e.label));
+    const date = new Date(e.at);
+    const dateStr = isNaN(date) ? '' : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (e.kind === 'hero') {
+      sitter(ctx, px, py, pw, ph, er);
+      lines.push([e.medal || 'Hero of Labour', `600 20px ${FONTS.body}`, C.red]);
+      lines.push([text.citizen(citizenNo), `16px ${FONTS.type}`, C.black]);
+      lines.push([e.label, `16px ${FONTS.type}`, C.black]);
+      lines.push([dateStr, `15px ${FONTS.type}`, C.grey]);
+    } else {
+      // a cleaner rectangle of paint where a picture used to hang
+      ctx.fillStyle = '#4a1014';
+      ctx.fillRect(px, py, pw, ph);
+      ctx.fillStyle = '#9c2f33';
+      ctx.fillRect(px + pw * 0.1, py + ph * 0.08, pw * 0.8, ph * 0.84);
+      ctx.fillStyle = '#2a1e18';
+      ctx.beginPath();
+      ctx.arc(px + pw / 2, py + ph * 0.05, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // the caption, painted over
+      ctx.fillStyle = '#d8ccb4';
+      for (let i = 0; i < 3; i++) ctx.fillRect(px + 8, capY + 7 + i * 22, pw - 16 - er() * 30, 14);
+      lines.push(['', '', '']);
+      lines.push(['', '', '']);
+      lines.push(['', '', '']);
+      lines.push([dateStr, `15px ${FONTS.type}`, C.grey]);
+      // stamp
+      ctx.save();
+      ctx.translate(px + pw / 2, py + ph * 0.5);
+      ctx.rotate(-0.25);
+      ctx.strokeStyle = C.cream;
+      ctx.fillStyle = C.cream;
+      ctx.lineWidth = 4;
+      ctx.font = `${fitText(ctx, text.removed, pw * 0.8, 44, FONTS.display)}px ${FONTS.display}`;
+      const tw = ctx.measureText(text.removed).width;
+      ctx.strokeRect(-tw / 2 - 10, -26, tw + 20, 50);
+      ctx.fillText(text.removed, 0, 2);
+      ctx.restore();
+    }
+    lines.forEach(([str, font, col], i) => {
+      if (!str) return;
+      ctx.font = font;
+      const size = Number(font.match(/(\d+)px/)[1]);
+      const fam = font.split('px ')[1];
+      const weight = font.startsWith('600') ? '600' : '';
+      ctx.font = `${weight ? weight + ' ' : ''}${fitText(ctx, str, pw - 12, size, fam, weight)}px ${fam}`;
+      ctx.fillStyle = col;
+      ctx.fillText(str, c.x + c.w / 2, capY + 14 + i * 22);
+    });
+  }
+}

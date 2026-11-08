@@ -508,6 +508,10 @@ export default function createPravdaEditor() {
       ],
     });
     save.awardMedal(GAME_ID, { ending: key, act: s.act + 1 });
+    // dismissed, erased or disbelieved counts as failure; anything else is still at the desk
+    const runLabel = `Edition of ${day().date.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase())}`;
+    if (key === 'unperson' || key === 'collapse') save.recordFailure(GAME_ID, runLabel);
+    else save.recordSuccess(GAME_ID, runLabel);
     const choice = await m.done;
     if (scope.disposed) return;
     if (choice === 'stack') {

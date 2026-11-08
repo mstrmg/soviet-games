@@ -109,6 +109,23 @@ export const audio = {
     noise(0.015, { type: 'highpass', freq: 4000, gain: 0.06 });
   },
 
+  /** One shuffling footstep on stone. */
+  step() {
+    noise(0.07, { type: 'lowpass', freq: 500 + Math.random() * 200, gain: 0.12 });
+  },
+
+  /** A metal shutter meeting a forehead, or being slammed for lunch. */
+  shutter() {
+    noise(0.35, { type: 'bandpass', freq: 700, q: 1.5, gain: 0.35 });
+    tone(110, 0.3, { type: 'square', gain: 0.05, slideTo: 70 });
+  },
+
+  /** Clock hands being wound back: a ratchet click. */
+  ratchet() {
+    noise(0.02, { type: 'bandpass', freq: 3200, q: 6, gain: 0.22 });
+    tone(900, 0.02, { type: 'square', gain: 0.03 });
+  },
+
   /** Water drip into a bucket. */
   drip() {
     tone(1300 + Math.random() * 300, 0.12, { type: 'sine', gain: 0.07, slideTo: 600 });

@@ -12,6 +12,12 @@ import {
   clockFaceTexture,
   signTexture,
   bannerTexture,
+  liveTexture,
+  drawQueueCard,
+  drawClockPlate,
+  drawHonourBoard,
+  boardCell,
+  BOARD_LAYOUT,
 } from './textures.js';
 import { buildQueue } from './citizens.js';
 
@@ -376,10 +382,37 @@ export function buildLobby(scene, departments, { medals = {} } = {}) {
   clock.position.set(wx - 0.1, 5.3, -5.3);
   clock.rotation.y = -Math.PI / 2;
   scene.add(shadowed(clock, true, false));
-  refs.clock = { hourHand, minuteHand, secondHand };
+  // brass plate: how far official time has been adjusted (hidden while it has not)
+  const plateTex = liveTexture(384, 112);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.34), flat(0xffffff, { map: plateTex.texture, metalness: 0.5, roughness: 0.45 }));
+  plate.position.set(wx - 0.04, 4.25, -5.3);
+  plate.rotation.y = -Math.PI / 2;
+  plate.visible = false;
+  scene.add(plate);
+  const clockHit = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.6, 1.6), new THREE.MeshBasicMaterial({ visible: false }));
+  clockHit.position.set(wx - 0.2, 5.1, -5.3);
+  clockHit.userData.feature = 'clock';
+  scene.add(clockHit);
+  refs.hitboxes.push(clockHit);
+  refs.clock = {
+    hourHand,
+    minuteHand,
+    secondHand,
+    setPlate(lines) {
+      plate.visible = Boolean(lines);
+      if (lines) plateTex.draw((ctx, w, h) => drawClockPlate(ctx, w, h, lines));
+    },
+  };
 
   const queue = buildQueue({ x: 9.6, zStart: -4.0 });
   scene.add(queue);
+  // remember each place in the line, so the line can move up without ever getting shorter
+  refs.queue = {
+    group: queue,
+    people: [...queue.children],
+    slots: queue.children.map((p) => ({ x: p.position.x, z: p.position.z, ry: p.rotation.y, rz: p.rotation.z, s: p.scale.x })),
+    shutterZ: -4.55, // where the front of the queue meets the closed window
+  };
 
   // queue registration stand
   const stand = new THREE.Group();
@@ -389,9 +422,59 @@ export function buildLobby(scene, departments, { medals = {} } = {}) {
   const standSign = texturedPlane(0.9, 0.6, signTexture(['QUEUE HERE', 'TO JOIN THE QUEUE'], { width: 300, height: 200, bg: CSS.cream, fg: CSS.black }));
   standSign.position.y = 1.7;
   stand.add(standSign);
+  const cardTex = liveTexture(320, 220);
+  const card = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.56), new THREE.MeshStandardMaterial({ map: cardTex.texture, roughness: 0.9 }));
+  card.position.set(0, 1.1, 0.03);
+  stand.add(card);
+  refs.queueCard = {
+    set(info) {
+      cardTex.draw((ctx, w, h) => drawQueueCard(ctx, w, h, info));
+    },
+  };
   stand.position.set(8.2, 0, 1.2);
   stand.rotation.y = -0.5;
   scene.add(shadowed(stand));
+
+  // ---- Heroes of Labour board (left, by the Minister) -----------------------------
+  // A free-standing board of honour on two posts, turned toward the visitor.
+  const boardTex = liveTexture(BOARD_LAYOUT.w, BOARD_LAYOUT.h);
+  const BW = 3.0;
+  const BH = (BW * BOARD_LAYOUT.h) / BOARD_LAYOUT.w;
+  const board = new THREE.Group();
+  const boardFace = new THREE.Mesh(new THREE.PlaneGeometry(BW, BH), new THREE.MeshStandardMaterial({ map: boardTex.texture, roughness: 0.8, emissive: 0xffffff, emissiveMap: boardTex.texture, emissiveIntensity: 0 }));
+  boardFace.position.set(0, 2.6 + BH / 2, 0.06);
+  board.add(boardFace);
+  board.add(box(BW + 0.24, BH + 0.24, 0.1, mats.woodDark, 0, 2.6 + BH / 2, 0));
+  board.add(box(BW + 0.5, 0.18, 0.4, mats.wood, 0, 2.6 + BH + 0.2, 0.05)); // little roof
+  board.add(box(0.5, 0.5, 0.12, mats.red, 0, 2.6 + BH + 0.55, 0)); // star plaque
+  for (const sx of [-1, 1]) board.add(box(0.14, 2.7, 0.14, mats.woodDark, sx * (BW / 2 - 0.25), 1.35, -0.06));
+  board.position.set(-9.3, 0, -6.1);
+  board.rotation.y = 0.85;
+  scene.add(shadowed(board));
+  const boardHit = new THREE.Mesh(new THREE.BoxGeometry(BW + 0.3, BH + 0.4, 0.3), new THREE.MeshBasicMaterial({ visible: false }));
+  boardHit.position.copy(boardFace.position);
+  boardHit.userData.feature = 'board';
+  board.add(boardHit);
+  refs.hitboxes.push(boardHit);
+  // spotlight for a new entry
+  const spot = new THREE.SpotLight(0xfff1d6, 0, 9, 0.12, 0.6, 1);
+  spot.position.set(0, 2.6 + BH + 2.5, 3.5);
+  board.add(spot, spot.target);
+  refs.board = {
+    group: board,
+    face: boardFace,
+    spot,
+    draw(entries, text, citizenNo) {
+      boardTex.draw((ctx, w, h) => drawHonourBoard(ctx, w, h, entries, text, citizenNo));
+    },
+    /** Board-local position of frame k, for aiming the spotlight. */
+    cellPos(k) {
+      const c = boardCell(k);
+      const u = (c.x + c.w / 2) / BOARD_LAYOUT.w;
+      const v = (c.y + c.h / 2) / BOARD_LAYOUT.h;
+      return new THREE.Vector3((u - 0.5) * BW, 2.6 + BH * (1 - v), 0.06);
+    },
+  };
 
   // ---- The leak, the bucket and the puddle ------------------------------------
   const bucket = new THREE.Group();

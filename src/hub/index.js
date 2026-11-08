@@ -5,6 +5,7 @@ import { fontsReady } from '../shared/fonts.js';
 import { el, button, toast, memo } from '../shared/ui.js';
 import { DEPARTMENTS, LOBBY_NOTICES } from './departments.js';
 import { buildLobby } from './lobby.js';
+import { createLobbyFeatures } from './features.js';
 
 let admittedThisSession = false;
 
@@ -21,6 +22,9 @@ export default function createHub() {
     parallax: new THREE.Vector2(0, 0),
     raycaster: new THREE.Raycaster(),
     hovered: null,
+    feature: null, // 'board' | 'clock' when the pointer is on one
+    features: null,
+    admission: null,
     look: LOOK_HOME.clone(),
     transition: null,
     lastSecond: -1,
@@ -49,6 +53,7 @@ export default function createHub() {
       s.refs = buildLobby(scene, DEPARTMENTS, { medals: save.data.medals });
 
       buildOverlay(ctx);
+      s.features = createLobbyFeatures(ctx, s.refs);
 
       // Input — all listeners go through scope, so they vanish on dispose.
       const canvas = ctx.renderer.domElement;
@@ -62,7 +67,13 @@ export default function createHub() {
       scope.on(canvas, 'click', () => {
         audio.unlock();
         if (s.hovered) enter(s.hovered);
+        else if (s.feature === 'board' && !s.transition && !document.querySelector('.memo-wrap')) {
+          audio.click();
+          s.features.openRegister();
+        }
       });
+      // Anything at all counts as not being idle. Doing nothing is how the queue moves.
+      for (const type of ['pointermove', 'pointerdown', 'wheel', 'keydown']) scope.on(window, type, () => s.features?.onInput(), { passive: true });
       scope.on(window, 'keydown', (e) => {
         if (s.transition || document.querySelector('.memo-wrap')) return;
         const n = Number(e.key);
@@ -89,14 +100,19 @@ export default function createHub() {
           stamp: 'ADMITTED',
           buttons: [{ label: 'PRESENT PERMIT', value: true, variant: 'red' }],
         });
-        m.done.then(() => {
+        s.admission = m.done.then(() => {
           admittedThisSession = true;
           audio.unlock();
           startAmbience();
-          presentNewMedals(ctx);
         });
-      } else {
-        presentNewMedals(ctx);
+      }
+
+      if (import.meta.env.DEV && window.__MOG) {
+        window.__MOG.dev = {
+          fail: (id = 'nail-quota', label = 'Test failure') => (save.recordFailure(id, label), ctx.goTo('hub')),
+          succeed: (id = 'nail-quota', label = 'Test success') => (save.recordSuccess(id, label), ctx.goTo('hub')),
+          shuffle: (n = 1) => s.features?.dev.shuffle(n),
+        };
       }
 
       // Rotate the lobby notice board every so often.
@@ -113,6 +129,17 @@ export default function createHub() {
       s.ui.notice.textContent = LOBBY_NOTICES[n];
     },
 
+    /** After the fade-in: admission, then medals, then the clock and the board have their say. */
+    async start() {
+      const { scope } = s.ctx;
+      if (s.admission) await s.admission;
+      if (scope.disposed) return;
+      const shown = presentNewMedals(s.ctx);
+      if (shown) await new Promise((res) => scope.timeout(res, shown * 1600 + 600));
+      if (scope.disposed) return;
+      await s.features.start();
+    },
+
     update(dt, time) {
       const { refs } = s;
       if (!refs) return;
@@ -122,8 +149,10 @@ export default function createHub() {
       if (!s.transition) {
         s.raycaster.setFromCamera(s.pointer, cam);
         const hit = s.raycaster.intersectObjects(refs.hitboxes, false)[0];
-        const door = hit ? hit.object.userData.door : null;
+        const door = hit ? hit.object.userData.door || null : null;
+        const feature = hit ? hit.object.userData.feature || null : null;
         if (door !== s.hovered) setHover(door);
+        if (feature !== s.feature) setFeature(feature);
       }
 
       // --- doors: hover glow, slight ajar, opening ---
@@ -169,18 +198,8 @@ export default function createHub() {
         cam.lookAt(s.look);
       }
 
-      // --- the clock (four minutes ahead of plan) ---
-      const now = new Date(Date.now() + 4 * 60 * 1000);
-      const sec = now.getSeconds();
-      const min = now.getMinutes() + sec / 60;
-      const hr = (now.getHours() % 12) + min / 60;
-      refs.clock.secondHand.rotation.z = -(sec / 60) * Math.PI * 2;
-      refs.clock.minuteHand.rotation.z = -(min / 60) * Math.PI * 2;
-      refs.clock.hourHand.rotation.z = -(hr / 12) * Math.PI * 2;
-      if (sec !== s.lastSecond) {
-        if (s.lastSecond !== -1 && admittedThisSession) s.ctx.audio.tick();
-        s.lastSecond = sec;
-      }
+      // --- the clock, the queue and the board ---
+      s.features.update(dt, admittedThisSession);
 
       // --- the leak ---
       const dr = refs.drip;
@@ -219,7 +238,7 @@ export default function createHub() {
       refs.pendants.forEach((p, i) => (p.rotation.x = Math.sin(time * 0.5 + i * 2) * 0.012));
 
       // tooltip follows the pointer
-      if (s.ui.tip && s.hovered) {
+      if (s.ui.tip && (s.hovered || s.feature)) {
         s.ui.tip.style.transform = `translate(${s.pointerPx.x + 18}px, ${s.pointerPx.y + 18}px)`;
       }
     },
@@ -227,6 +246,8 @@ export default function createHub() {
     dispose() {
       s.refs = null;
       s.hovered = null;
+      s.feature = null;
+      s.features = null;
       s.transition = null;
       s.ui = {};
       s.ctx = null;
@@ -255,6 +276,20 @@ export default function createHub() {
       ]),
       el('div.tip-hint', {}, 'CLICK TO ENTER'),
     );
+    tip.classList.add('show');
+  }
+
+  function setFeature(feature) {
+    s.feature = feature;
+    if (s.hovered) return; // a door's tooltip wins
+    const tip = s.ui.tip;
+    s.ctx.renderer.domElement.style.cursor = feature === 'board' ? 'pointer' : '';
+    if (!tip) return;
+    if (!feature) {
+      tip.classList.remove('show');
+      return;
+    }
+    tip.replaceChildren(...s.features.tipFor(feature));
     tip.classList.add('show');
   }
 
@@ -346,7 +381,7 @@ export default function createHub() {
   function presentNewMedals(ctx) {
     const { save, audio, layer, scope } = ctx;
     const fresh = DEPARTMENTS.filter((d) => save.data.medals[d.id] && !save.data.medals[d.id].presented);
-    if (!fresh.length) return;
+    if (!fresh.length) return 0;
     fresh.forEach((d, i) => {
       scope.timeout(() => {
         audio.fanfare();
@@ -356,6 +391,7 @@ export default function createHub() {
     save.update((data) => {
       for (const d of fresh) data.medals[d.id].presented = true;
     });
+    return fresh.length;
   }
 
   return self;

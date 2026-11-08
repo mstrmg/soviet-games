@@ -574,6 +574,9 @@ export default function createPotemkin() {
     const np0 = NEWSPAPER[key];
     const vars = { name: s.level.name.charAt(0) + s.level.name.slice(1).toLowerCase(), impression: imp };
     save.awardMedal(GAME_ID, { impression: imp, condition });
+    const runLabel = `${vars.name}: ${imp}%`;
+    if (imp >= 50) save.recordSuccess(GAME_ID, runLabel);
+    else save.recordFailure(GAME_ID, runLabel);
     save.setGame(GAME_ID, { best: Math.max(imp, save.game(GAME_ID).best || 0) });
     audio.fanfare();
     // photograph the village as it is now: the plywood is fourteen kilometres away

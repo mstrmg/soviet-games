@@ -215,3 +215,11 @@ body { font-family: var(--body); -webkit-font-smoothing: antialiased; }
   #grain { animation: none; }
   .memo, .newspaper, .toast { animation: none; }
 }
+
+/* ---------- Honours Register ---------- */
+.memo.register { width: min(620px, 94vw); }
+.register-list { list-style: none; margin: 6px 0 4px; padding: 0; max-height: min(46vh, 420px); overflow-y: auto; border-top: 1px solid rgba(0,0,0,0.25); }
+.register-list li { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; padding: 6px 2px; border-bottom: 1px dotted rgba(0,0,0,0.3); font: 15px/1.35 var(--type); }
+.register-list .reg-date { color: var(--red-dark); }
+.register-list b { font-weight: normal; color: var(--red); }
+.register-list li.withdrawn .reg-text { color: #8b857a; letter-spacing: 0.04em; }
