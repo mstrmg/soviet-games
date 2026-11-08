@@ -1,0 +1,34 @@
+/* ---------- Mass Games ---------- */
+.mg-hud { position: absolute; inset: 0; pointer-events: none; }
+.mg-hud button { pointer-events: auto; }
+.mg-board {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.45), 6px 6px 0 #024fa2;
+}
+.mg-cell { background: var(--ink); padding: 8px 20px 7px; text-align: center; min-width: 150px; }
+.mg-wide { min-width: 300px; }
+.mg-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: #b9b4aa; text-transform: uppercase; }
+.mg-num { font: 40px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.mg-num.low { color: var(--red); }
+.mg-num.done { color: var(--gold); }
+.mg-title { font: 30px/1.3 var(--display); color: var(--gold); letter-spacing: 0.05em; }
+
+.mg-side-panel {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-46%); width: 236px; pointer-events: auto;
+  background: rgba(22,21,20,0.92); padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.5); border-top: 4px solid var(--red);
+}
+.mg-plan { width: 212px; height: 159px; image-rendering: pixelated; background: #161514; }
+.mg-pages { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.mg-swatch { width: 22px; height: 22px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; }
+.mg-arrow { color: var(--cream); font: 600 14px var(--body); }
+.mg-side-panel .btn { width: 100%; }
+
+.mg-hint { position: absolute; left: 24px; bottom: 26px; max-width: 280px; font: 600 12px/1.4 var(--body); letter-spacing: 0.08em; color: var(--cream); text-shadow: 0 1px 3px rgba(0,0,0,0.7); text-transform: uppercase; }
+.memo-wrap.mg-side { background: rgba(0,0,0,0.15); place-items: center start; padding-left: 4vw; }
+@media (max-width: 900px) {
+  .mg-side-panel { top: auto; bottom: 12px; transform: none; width: 180px; }
+  .mg-plan { width: 156px; height: 117px; }
+  .mg-wide { min-width: 180px; }
+  .mg-title { font-size: 20px; }
+}

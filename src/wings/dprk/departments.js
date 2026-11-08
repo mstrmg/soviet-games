@@ -17,7 +17,7 @@ export const DEPARTMENTS = [
     title: 'MASS GAMES',
     dept: 'Office of Spontaneous Celebration',
     blurb: 'Thirty thousand cards, one image. One wrong card and the whole image is reviewed.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · THREE IMAGES',
     medal: 'Medal of the Correct Card',
     poster: { motif: 'cards', slogan: 'ALL TOGETHER!', sub: 'EXACTLY TOGETHER' },
   },
