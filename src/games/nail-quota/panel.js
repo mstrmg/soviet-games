@@ -1,7 +1,7 @@
 // NAIL QUOTA — the Director's control panel (HTML overlay).
 import { el, button } from '../../shared/ui.js';
 import { CSS, FONTS } from '../../shared/palette.js';
-import { LIMITS, analyse, QUOTA_TEXT, fmtInt, fmtNum, fmtLength, fmtMass, fmtMeasured } from './rules.js';
+import { LIMITS, analyse, QUOTA_TEXT, planLabel, fmtInt, fmtNum, fmtLength, fmtMass, fmtMeasured } from './rules.js';
 
 const STEPS = 2000;
 const toLog = (v, min, max) => Math.round((Math.log(v / min) / Math.log(max / min)) * STEPS);
@@ -59,7 +59,7 @@ export function createPanel(parent, level, { onChange, onProduce, onTick }) {
   const node = el('aside.nq-panel', { 'aria-label': 'Production controls' }, [
     el('div.nq-quota', {}, [
       el('div.nq-quota-k', {}, 'THE PLAN'),
-      el('div.nq-quota-v', {}, `${fmtInt(q.target)} ${qt.short}`),
+      el('div.nq-quota-v', {}, planLabel(q)),
       el('div.nq-bar.nq-bar-quota', {}, quotaBar),
       quotaTxt,
     ]),
@@ -117,7 +117,15 @@ export function createPanel(parent, level, { onChange, onProduce, onTick }) {
     const f = result.fulfilment * 100;
     quotaBar.style.width = `${Math.min(100, f)}%`;
     quotaBar.classList.toggle('met', f >= 99.95);
-    quotaTxt.textContent = `${qt.metric}: ${fmtMeasured(q.type, result.measured)} · ${fmtNum(f)}% of plan`;
+    quotaBar.classList.toggle('nq-unmeasured', q.type === 'need');
+    const lines = [];
+    if (q.type === 'need') lines.push('No indicator could be devised. The year will be recorded as fulfilled.');
+    else if (result.parts) {
+      result.parts.forEach((pt) => lines.push(`${QUOTA_TEXT[pt.type].metric}: ${fmtMeasured(pt.type, pt.measured)} · ${fmtNum(pt.fulfilment * 100)}% of ${fmtMeasured(pt.type, pt.target)}`));
+      lines.push(`Averaged: ${fmtNum(f)}% of plan`);
+    } else lines.push(`${qt.metric}: ${fmtMeasured(q.type, result.measured)} · ${fmtNum(f)}% of plan`);
+    if (result.inspection) lines.push(result.inspection.pass ? 'Inspector\'s nail: recognisably a nail.' : 'Inspector\'s nail: NOT RECOGNISABLY A NAIL. Output will count as scrap.');
+    quotaTxt.replaceChildren(...lines.map((t) => el(`div${t.includes('NOT RECOGNISABLY') ? '.nq-warn' : ''}`, {}, t)));
 
     spec.textContent = `${fmtLength(plan.lengthCm)} × ${fmtNum(plan.diameterMm)} mm · ${fmtMass(result.massG)} each`;
     problems.replaceChildren(...result.problems.map((p) => el('div', {}, p)));

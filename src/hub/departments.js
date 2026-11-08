@@ -7,7 +7,7 @@ export const DEPARTMENTS = [
     title: 'NAIL QUOTA',
     dept: 'Directorate of Fasteners',
     blurb: 'Meet the quota. The quota does not say what nails are for.',
-    status: 'OPEN · YEARS 1–4',
+    status: 'OPEN · TEN YEARS',
     medal: 'Order of the Unbent Nail',
     poster: {
       motif: 'nail',

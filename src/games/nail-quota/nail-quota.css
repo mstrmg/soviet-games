@@ -27,6 +27,8 @@
 .nq-bar-fill.over { background: var(--red); }
 .nq-quota-fill { background: var(--cream); }
 .nq-quota-fill.met { background: var(--gold); }
+.nq-quota-fill.nq-unmeasured { width: 100% !important; background: repeating-linear-gradient(45deg, #7d7a74 0 6px, transparent 6px 12px); }
+.nq-quota-txt .nq-warn { background: var(--black); color: var(--gold); padding: 2px 5px; margin-top: 3px; }
 .nq-section { padding: 10px 14px; border-top: 2px solid var(--black); }
 .nq-h { font: 600 11px var(--body); letter-spacing: 0.2em; margin-bottom: 6px; }
 .nq-blueprint { width: 100%; height: auto; display: block; border: 2px solid var(--black); }

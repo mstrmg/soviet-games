@@ -83,7 +83,23 @@ export function analyse(level, plan) {
   if (strikes > level.strikes) problems.push('Insufficient press time. The press is booked.');
   if (level.quota.type === 'crates' && !crateCap) problems.push('The nail does not fit in a crate. The crate is standard.');
 
-  const measured = measure(level.quota, { count, totalKg, totalLengthM, crates });
+  const q = level.quota;
+  const facts = { count, totalKg, totalLengthM, crates, steelLeftKg: Math.max(0, level.steelKg - totalKg) };
+  let measured = measure(q, facts);
+  let fulfilment = q.type === 'need' ? 1 : measured / q.target;
+  // two indicators at once: each directorate measures its own; the Ministry averages them
+  let parts = null;
+  if (q.type === 'both') {
+    parts = q.parts.map((pt) => {
+      const m = measure(pt, facts);
+      return { ...pt, measured: m, fulfilment: m / pt.target };
+    });
+    fulfilment = parts.reduce((a, pt) => a + pt.fulfilment, 0) / parts.length;
+    measured = fulfilment * q.target;
+  }
+  // an Inspector picks one nail at random and checks that it is a nail
+  const inspection = q.inspect ? { pass: isUsable(lengthCm, diameterMm) } : null;
+  if (inspection && !inspection.pass) fulfilment = 0;
 
   return {
     lengthCm,
@@ -100,7 +116,9 @@ export function analyse(level, plan) {
     maxCount,
     kind: classify(lengthCm, diameterMm),
     measured,
-    fulfilment: measured / level.quota.target,
+    fulfilment,
+    parts,
+    inspection,
     ok: problems.length === 0,
     problems,
   };
@@ -117,6 +135,10 @@ export function measure(quota, p) {
       return p.totalLengthM;
     case 'crates':
       return p.crates;
+    case 'saving':
+      return p.steelLeftKg;
+    case 'need':
+      return NaN; // there is no indicator for this
     default:
       return 0;
   }
@@ -127,7 +149,16 @@ export const QUOTA_TEXT = {
   count: { metric: 'Nails counted', unit: 'nails', short: 'NAILS' },
   length: { metric: 'Length end to end', unit: 'm', short: 'METRES OF NAIL' },
   crates: { metric: 'Crates shipped', unit: 'crates', short: 'CRATES OF NAILS' },
+  saving: { metric: 'Steel saved', unit: 'kg', short: 'KG OF STEEL SAVED' },
+  both: { metric: 'Both indicators, averaged', unit: '%', short: '% OF BOTH PLANS' },
+  need: { metric: 'Nails the people need', unit: '', short: 'NAILS THE PEOPLE NEED' },
 };
+
+/** What the Plan says, in one line, for the board and the panel. */
+export function planLabel(quota) {
+  if (quota.label) return quota.label;
+  return `${fmtInt(quota.target)} ${QUOTA_TEXT[quota.type].short}`;
+}
 
 export function verdict(fulfilment) {
   if (fulfilment >= 1.5) return { stamp: 'HEROICALLY OVERFULFILLED', grade: 3, label: 'Hero of Fasteners' };
@@ -169,5 +200,8 @@ export function fmtMeasured(type, v) {
   if (type === 'length') return v >= 1000 ? `${fmtNum(v / 1000)} km` : `${fmtNum(v)} m`;
   if (type === 'count') return `${fmtInt(v)} nails`;
   if (type === 'crates') return `${fmtInt(v)} crates`;
+  if (type === 'saving') return `${fmtNum(v)} kg saved`;
+  if (type === 'both') return `${fmtNum(v)}%`;
+  if (type === 'need') return 'unmeasurable';
   return String(v);
 }

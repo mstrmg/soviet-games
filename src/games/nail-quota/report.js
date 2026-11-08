@@ -45,11 +45,11 @@ export function showReport(parent, { title, subtitle, results }) {
   actions.append(declassify);
 
   const node = el('div.memo-wrap', {}, [
-    el('div.nq-report.paper', { role: 'dialog', 'aria-label': 'Five-Year Report' }, [
+    el('div.nq-report.paper', { role: 'dialog', 'aria-label': 'Ten-Year Report' }, [
       el('div.memo-head', {}, [
         el('div.memo-crest', {}, '☭'),
         el('div', {}, [el('div.memo-ministry', {}, title), el('div.memo-dept', {}, subtitle)]),
-        el('div.memo-no', {}, 'FORM 5-YR'),
+        el('div.memo-no', {}, 'FORM 2×5-YR'),
       ]),
       el('table.nq-table', {}, [
         el('thead', {}, el('tr', {}, [
