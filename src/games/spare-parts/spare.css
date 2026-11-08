@@ -1,0 +1,66 @@
+/* ---------- Spare Parts ---------- */
+.sp-hud { position: absolute; inset: 0; pointer-events: none; }
+.sp-hud button, .sp-card { pointer-events: auto; }
+.sp-board {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.4), 6px 6px 0 #002a8f;
+}
+.sp-cell { background: var(--ink); padding: 8px 20px 7px; text-align: center; min-width: 150px; }
+.sp-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: #b9b4aa; text-transform: uppercase; }
+.sp-num { font: 40px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.sp-num.bad { color: var(--red); }
+.sp-info { font: 600 11px var(--body); letter-spacing: 0.12em; color: #8f8a80; text-transform: uppercase; }
+
+.sp-panel {
+  position: absolute; left: 22px; top: 120px; width: 250px; background: #f2ede0; color: var(--ink);
+  padding: 12px 14px; box-shadow: 0 10px 24px rgba(0,0,0,0.4); border-top: 4px solid #cf142b;
+}
+.sp-panel .sp-lab { color: #6b665d; }
+.sp-order { margin-top: 10px; padding: 8px 10px; background: #fbf8f0; border-left: 4px solid #cf142b; }
+.sp-order b { font: 22px/1.1 var(--display); letter-spacing: 0.04em; }
+.sp-order ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.sp-order li { font: 14px/1.5 var(--body); padding-left: 20px; position: relative; }
+.sp-order li::before { content: '☐'; position: absolute; left: 0; color: #8f8a80; }
+.sp-order li.ok::before { content: '☑'; color: #2f8a3a; }
+.sp-order li.no::before { content: '☒'; color: var(--red); }
+.sp-order li.no { color: var(--red); }
+.sp-order.trial { outline: 2px solid var(--gold); }
+.sp-order.done { opacity: 0.55; border-left-color: #2f8a3a; }
+.sp-order.done b::after { content: ' · FITTED'; font-size: 14px; color: #2f8a3a; }
+
+.sp-yardwrap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(1100px, 94vw); }
+.sp-yardwrap > .sp-lab { color: var(--cream); text-shadow: 0 1px 3px #000; margin-bottom: 4px; }
+.sp-yard { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.sp-card {
+  background: #e9e1cc; color: var(--ink); padding: 8px 10px 9px; cursor: grab; user-select: none; touch-action: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.4); border-bottom: 3px solid #b8ad92; position: relative; min-height: 92px;
+}
+.sp-card:hover { transform: translateY(-3px); }
+.sp-card b { display: block; font: 600 14px/1.2 var(--body); margin: 4px 0 5px; }
+.sp-swatch { display: block; width: 100%; height: 10px; }
+.sp-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.sp-tags span { font: 600 10px/1.3 var(--body); letter-spacing: 0.04em; background: #fbf8f0; border: 1px solid #c9c1ae; padding: 1px 4px; text-transform: uppercase; color: #4a463f; }
+.sp-card.used { opacity: 0.35; cursor: default; pointer-events: none; }
+.sp-card i { position: absolute; right: 8px; top: 14px; font: 600 10px var(--body); color: #2f8a3a; text-transform: uppercase; }
+.sp-card.shake { animation: spShake 0.4s; }
+@keyframes spShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+.sp-zone {
+  position: fixed; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%;
+  border: 3px dashed #cf142b; background: rgba(207,20,43,0.12); display: grid; place-items: center; pointer-events: none;
+  animation: spPulse 1.4s infinite;
+}
+.sp-zone span { position: absolute; top: -26px; white-space: nowrap; font: 600 12px var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream); background: #cf142b; padding: 2px 8px; }
+.sp-zone.hot { border-style: solid; border-color: var(--gold); background: rgba(212,167,44,0.3); }
+@keyframes spPulse { 50% { transform: scale(1.08); } }
+
+.sp-ghost {
+  position: fixed; z-index: 7; transform: translate(-50%, -120%); pointer-events: none;
+  background: var(--ink); color: var(--cream); font: 600 13px var(--body); padding: 6px 10px; box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+}
+.sp-hint { position: absolute; left: 24px; top: 92px; font: 600 12px/1.4 var(--body); letter-spacing: 0.08em; color: var(--cream); text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-transform: uppercase; }
+.memo-wrap.sp-side { background: rgba(0,0,0,0.2); place-items: center start; padding-left: 4vw; }
+@media (max-width: 900px) {
+  .sp-yard { grid-template-columns: repeat(3, 1fr); }
+  .sp-panel { top: 100px; width: 180px; }
+}

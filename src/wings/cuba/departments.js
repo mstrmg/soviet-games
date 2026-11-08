@@ -7,7 +7,7 @@ export const DEPARTMENTS = [
     title: 'SPARE PARTS',
     dept: 'Office of Automotive Continuity',
     blurb: 'Keep a 1957 car running until 2017. The parts were never imported. The inspection only checks the colour.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · SIXTY YEARS',
     medal: 'Order of the Improvised Carburettor',
     poster: { motif: 'car', slogan: 'IT STILL RUNS!', sub: 'MOSTLY' },
   },

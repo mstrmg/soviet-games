@@ -27,6 +27,7 @@ manager
   .register('hole-in-eleven', () => import('./games/hole-in-eleven/index.js'))
   .register('mass-games', () => import('./games/mass-games/index.js'))
   .register('lights-of-the-capital', () => import('./games/lights-of-the-capital/index.js'))
+  .register('spare-parts', () => import('./games/spare-parts/index.js'))
   .register('backyard-furnace', () => import('./games/backyard-furnace/index.js'))
   .register('launch-a-satellite', () => import('./games/launch-a-satellite/index.js'))
   .register('press-conference', () => import('./games/press-conference/index.js'))
