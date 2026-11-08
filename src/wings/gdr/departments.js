@@ -16,7 +16,7 @@ export const DEPARTMENTS = [
     title: 'LISTENING POST',
     dept: 'Office of Attentive Listening',
     blurb: 'Apartment 4B makes soup. Report it in a way that justifies the microphones.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · FOUR DAYS',
     medal: 'Order of the Diligent Ear',
     poster: { motif: 'ear', slogan: 'WE LISTEN!', sub: 'SO YOU DON\'T HAVE TO' },
   },
