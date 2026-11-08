@@ -27,7 +27,7 @@ export const DEPARTMENTS = [
     title: 'LIGHTS OF THE CAPITAL',
     dept: 'Office of Visible Prosperity',
     blurb: 'A small power budget, a large capital, and a satellite overhead every few minutes.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · THREE NIGHTS',
     medal: 'Order of the Bright Photograph',
     poster: { motif: 'bulb', slogan: 'A BRIGHT FUTURE!', sub: 'WHEN PHOTOGRAPHED' },
   },
