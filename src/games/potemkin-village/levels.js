@@ -82,12 +82,12 @@ export const LEVELS = [
       body: [
         'The Deputy Inspector has had his neck seen to by the Ministry physician. He now looks out of both windows.',
         'The left side of Krasnoye was not previously considered part of Krasnoye. It is now.',
-        'Materials: nine sheets of plywood (recovered from Zarechnoe), five tins of paint, nine volunteers.',
+        'Materials: seven sheets of plywood (recovered from Zarechnoe), four tins of paint, six volunteers. Three volunteers were recovered by their families.',
       ],
     },
     windows: ['left', 'right'],
     speed: 7,
-    budget: { plywood: 9, paint: 5, people: 9 },
+    budget: { plywood: 7, paint: 4, people: 6 },
     route: [
       [-50, 0],
       [50, 0],
@@ -131,12 +131,12 @@ export const LEVELS = [
       body: [
         'The Deputy Inspector looks out of the right-hand window only. His neck has relapsed.',
         'However, the car will stop twice (marked on the road). When the car stops, the Inspector turns his head and looks ahead and behind. A facade is flat. He is not.',
-        'Materials: eight sheets of plywood, five tins of paint, nine volunteers.',
+        'Materials: six sheets of plywood, three tins of paint, six volunteers.',
       ],
     },
     windows: ['right'],
     speed: 6,
-    budget: { plywood: 8, paint: 5, people: 9 },
+    budget: { plywood: 6, paint: 3, people: 6 },
     route: [
       [-46, 0],
       [46, 0],
@@ -182,12 +182,12 @@ export const LEVELS = [
       body: [
         'The Deputy Inspector will drive through Svetloye in the afternoon. The weather forecast for the afternoon is classified.',
         'Stores have been generous with paint this time, and less generous with plywood. Draw no conclusions.',
-        'Materials: five sheets of plywood, eight tins of paint (water-based), nine volunteers (waterproof).',
+        'Materials: three sheets of plywood, eight tins of paint (water-based), six volunteers (waterproof).',
       ],
     },
     windows: ['right'],
     speed: 6,
-    budget: { plywood: 5, paint: 8, people: 9 },
+    budget: { plywood: 3, paint: 8, people: 6 },
     route: [
       [-46, 0],
       [46, 0],
@@ -235,12 +235,12 @@ export const LEVELS = [
       body: [
         'The Deputy Inspector has asked to see "the real village". He will get out of the car at the well and walk round the back of the houses, then rejoin the car.',
         'On foot he looks in every direction, including behind things. A facade seen from behind is a house that was plywood.',
-        'Materials: eight sheets of plywood, six tins of paint, twelve volunteers. This is the last village. The plywood has been everywhere.',
+        'Materials: six sheets of plywood, four tins of paint, nine volunteers. This is the last village. The plywood has been everywhere.',
       ],
     },
     windows: ['right'],
     speed: 6,
-    budget: { plywood: 8, paint: 6, people: 12 },
+    budget: { plywood: 6, paint: 4, people: 9 },
     route: [
       [-46, 0],
       [0, 0, 'walk'],
@@ -272,7 +272,7 @@ export const LEVELS = [
       { id: 'f-b2', kind: 'facade', pos: [-9, 4.8] },
       { id: 'p-mud1', kind: 'paint', target: 'mud-b1', pos: [6, 9] },
       { id: 'p-fence', kind: 'paint', target: 'fence-b', pos: [8, 17] },
-      { id: 'f-barn', kind: 'facade', pos: [20, 15.4], rot: Math.PI },
+      { id: 'f-barn', kind: 'facade', pos: [20, 15.4] },
       { id: 'f-b3', kind: 'facade', pos: [24, 3.6] },
       { id: 'w-shop', kind: 'window', target: 'shop', pos: [36, 5.4] },
       { id: 'b-well', kind: 'banner', pos: [-2, 2.6] },

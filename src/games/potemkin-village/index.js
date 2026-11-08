@@ -17,6 +17,7 @@ const DAY = { bg: 0xaebfc6, hemi: [0xf2e8d5, 0x4a4030, 0.7], sun: [0xfff0d8, 2.6
 
 /** Good things seen vs. bad things seen, each weighted by how much of it he saw and for how long. */
 const BACK_WEIGHT = 4;
+const WASH_WEIGHT = 2.5;
 const BACK_LABEL = 'the back of a house, which was plywood';
 
 function impressionOf(G, B) {
@@ -386,10 +387,12 @@ export default function createPotemkin() {
   /** Every place he will look from, and how: the drive, the stops (head turned) and the walk. */
   function viewSamples(step) {
     const L = s.level;
-    const out = sampleRoute(L.route, step).map((p) => ({ ...p, windows: p.mode === 'walk' ? ['around'] : L.windows }));
+    // w: how long he spends looking from here, in car-metres (walking is slow; a stop is long)
+    const walkW = L.speed / (L.walk?.speed || 2);
+    const out = sampleRoute(L.route, step).map((p) => ({ ...p, w: p.mode === 'walk' ? walkW : 1, windows: p.mode === 'walk' ? ['around'] : L.windows }));
     for (const st of L.stops || []) {
       const near = sampleRoute(L.route, 1).find((p) => p.mode === 'car' && Math.abs(p.pos.x - st.x) < 0.6 && Math.abs(p.pos.z) < 0.6);
-      if (near) for (let k = 0; k < 3; k++) out.push({ ...near, windows: stoppedWindows(L.windows) });
+      if (near) for (let k = 0; k < 3; k++) out.push({ ...near, w: (st.secs * L.speed) / 3, windows: stoppedWindows(L.windows) });
     }
     return out;
   }
@@ -534,6 +537,9 @@ export default function createPotemkin() {
     for (const t of s.things.values()) {
       if (t.fixed && t.fixKind === 'paint') {
         setFixed(t, false, s.m);
+        // running paint looks worse than no paint
+        t.weight *= WASH_WEIGHT;
+        t.label = `${t.label}, with paint running off it`;
         washed++;
       }
     }
@@ -785,12 +791,18 @@ export default function createPotemkin() {
         let G = 0;
         let B = 0;
         const bad = new Set();
-        for (const { pos, fwd, windows } of viewSamples(1)) {
-          for (const [it, frac] of visibleItems(pos, fwd, windows, s.items, occ)) {
+        const samples = viewSamples(1);
+        const rainFrom = s.level.rain ? s.level.rain.at * s.route.length : Infinity;
+        samples.forEach(({ pos, fwd, windows, w }, k) => {
+          const wet = k >= rainFrom && k < s.route.length;
+          for (const [it, f] of visibleItems(pos, fwd, windows, s.items, occ)) {
+            const frac = f * w;
             if (backSeen(it, pos)) { B += BACK_WEIGHT * frac; bad.add(`${it.slot.id}:back`); continue; }
-            if (isBad(it)) { B += it.weight * frac; if (frac >= VIEW.notice) bad.add(it.def.id); } else G += goodWeight(it) * frac;
+            if (wet && it.fixed && it.fixKind === 'paint') { B += it.weight * WASH_WEIGHT * frac; continue; }
+            if (wet && it.kind === 'prop' && it.slot.kind === 'banner') { G += goodWeight(it) * 0.3 * frac; continue; }
+            if (isBad(it)) { B += it.weight * frac; if (f >= VIEW.notice) bad.add(it.def.id); } else G += goodWeight(it) * frac;
           }
-        }
+        });
         return { imp: impressionOf(G, B), G, B, bad: [...bad] };
       },
     };
