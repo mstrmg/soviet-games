@@ -6,7 +6,7 @@ export const DEPARTMENTS = [
     title: 'THE TRABANT LIST',
     dept: 'Office of Personal Motoring',
     blurb: 'Your car will be delivered in twelve years. It could be sooner. It could be less of a car.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · TWELVE YEARS',
     medal: 'Medal for Patient Motoring',
     poster: { motif: 'car', slogan: 'YOUR CAR!', sub: 'DELIVERY ANTICIPATED' },
   },

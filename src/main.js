@@ -24,7 +24,8 @@ manager
   .register('sparrow-campaign', () => import('./games/sparrow-campaign/index.js'))
   .register('backyard-furnace', () => import('./games/backyard-furnace/index.js'))
   .register('launch-a-satellite', () => import('./games/launch-a-satellite/index.js'))
-  .register('press-conference', () => import('./games/press-conference/index.js'));
+  .register('press-conference', () => import('./games/press-conference/index.js'))
+  .register('trabant-list', () => import('./games/trabant-list/index.js'));
 for (const d of ALL_DEPARTMENTS) {
   if (!manager.has(d.id)) manager.register(d.id, () => import('./wings/placeholders.js').then((m) => ({ default: m.placeholderFor(d.id) })));
 }
