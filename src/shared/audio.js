@@ -153,6 +153,25 @@ export const audio = {
     tone(f * 2.76, 0.2, { type: 'sine', gain: 0.025 });
   },
 
+  /** Something heavy and iron dropped into a furnace. */
+  clang() {
+    const f = 180 + Math.random() * 140;
+    tone(f, 0.5, { type: 'triangle', gain: 0.12 });
+    tone(f * 2.71, 0.3, { type: 'sine', gain: 0.05 });
+    noise(0.12, { type: 'bandpass', freq: 1400, q: 2, gain: 0.25 });
+  },
+
+  /** The furnace taking a breath: fuel catching. */
+  roar() {
+    noise(0.9, { type: 'lowpass', freq: 600, gain: 0.5, attack: 0.08 });
+    noise(0.5, { type: 'bandpass', freq: 1800, q: 1, gain: 0.08, attack: 0.05 });
+  },
+
+  /** Hot iron meeting cold air, or a cold furnace refusing. */
+  hiss() {
+    noise(0.6, { type: 'highpass', freq: 4500, gain: 0.12, attack: 0.02 });
+  },
+
   /** Water drip into a bucket. */
   drip() {
     tone(1300 + Math.random() * 300, 0.12, { type: 'sine', gain: 0.07, slideTo: 600 });
@@ -199,7 +218,7 @@ export const audio = {
 
   /**
    * Start a named looping drone (factory hum, room tone). Returns a stop function.
-   * Kinds: 'hum' (factory), 'room' (lobby tone), 'swarm' (insects, many).
+   * Kinds: 'hum' (factory), 'room' (lobby tone), 'swarm' (insects, many), 'fire' (a furnace).
    */
   loop(name, kind = 'hum', level = 0.06) {
     const c = ensure();
@@ -210,9 +229,9 @@ export const audio = {
     const nodes = [];
     const lp = c.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = kind === 'hum' ? 420 : kind === 'swarm' ? 2200 : 260;
+    lp.frequency.value = kind === 'hum' ? 420 : kind === 'swarm' ? 2200 : kind === 'fire' ? 520 : 260;
     lp.connect(g).connect(master);
-    const freqs = kind === 'hum' ? [50, 100, 150.5] : kind === 'swarm' ? [190, 241.5, 297, 352.7] : [55, 110.3];
+    const freqs = kind === 'hum' ? [50, 100, 150.5] : kind === 'swarm' ? [190, 241.5, 297, 352.7] : kind === 'fire' ? [38, 57.3] : [55, 110.3];
     for (const f of freqs) {
       const o = c.createOscillator();
       o.type = kind === 'hum' ? 'sawtooth' : kind === 'swarm' ? 'square' : 'sine';
@@ -227,7 +246,7 @@ export const audio = {
     src.buffer = noiseBuffer;
     src.loop = true;
     const ng = c.createGain();
-    ng.gain.value = kind === 'hum' ? 0.25 : kind === 'swarm' ? 0.6 : 0.4;
+    ng.gain.value = kind === 'hum' ? 0.25 : kind === 'swarm' ? 0.6 : kind === 'fire' ? 1.6 : 0.4;
     src.connect(ng).connect(lp);
     src.start();
     nodes.push(src);

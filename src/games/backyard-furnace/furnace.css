@@ -1,0 +1,55 @@
+/* ---------- Backyard Furnace ---------- */
+.bf-board {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.4), 6px 6px 0 var(--red);
+}
+.bf-cell { background: var(--ink); padding: 8px 18px 6px; text-align: center; min-width: 120px; }
+.bf-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: var(--grey-light, #b9b4aa); text-transform: uppercase; }
+.bf-num { font: 44px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.bf-time { color: var(--gold); }
+.bf-board.met .bf-cell:first-child .bf-num { color: var(--gold); }
+.bf-num.bump { animation: bfBump 0.3s; }
+@keyframes bfBump { 50% { transform: scale(1.22); color: #ff9a40; } }
+
+.bf-announce {
+  position: absolute; top: 112px; left: 50%; transform: translateX(-50%); max-width: min(760px, 90vw);
+  background: var(--red); color: var(--cream); font: 22px/1.2 var(--display); letter-spacing: 0.06em; text-align: center;
+  padding: 8px 18px; opacity: 0; pointer-events: none; box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.bf-announce.show { animation: bfAnnounce 5.5s forwards; }
+@keyframes bfAnnounce { 0% { opacity: 0; transform: translate(-50%, -8px); } 6%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+.bf-gauge { position: absolute; bottom: 24px; width: 300px; background: rgba(22,21,20,0.85); padding: 10px 12px; }
+.bf-harvest { left: 24px; }
+.bf-heat { right: 24px; }
+.bf-gauge span { color: var(--cream); }
+.bf-bar { height: 12px; background: #3a3632; margin-top: 6px; }
+.bf-fill { height: 100%; transition: width 0.3s linear; }
+.bf-harvest .bf-fill { background: #c9a94a; }
+.bf-heat .bf-fill { background: linear-gradient(90deg, #8a2a10, #ff8a30); }
+.bf-fill.low { background: var(--red); }
+.bf-heat .bf-fill.low { background: #4a3a34; }
+
+.bf-hint {
+  position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  font: 600 12px var(--body); letter-spacing: 0.18em; color: var(--cream); opacity: 0.7; text-shadow: 0 1px 3px #000;
+}
+
+.bf-tip {
+  position: fixed; left: 0; top: 0; pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.12s;
+  background: var(--cream); color: var(--ink); font: 600 13px var(--body); letter-spacing: 0.06em; padding: 5px 10px;
+  box-shadow: 3px 3px 0 var(--black);
+}
+.bf-tip.show { opacity: 1; }
+
+.bf-floaters { position: fixed; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+.bf-float {
+  position: absolute; left: 0; top: 0; white-space: nowrap; font: 20px/1 var(--display); letter-spacing: 0.06em;
+  color: #ffd27a; text-shadow: 0 2px 0 #000, 0 0 10px rgba(255,120,30,0.6);
+}
+.bf-float.tool { color: #f2e8d5; }
+.bf-float.cold { color: #b9c8d8; font-size: 18px; }
+.layer:has(.memo-wrap) .bf-tip, .layer:has(.np-wrap) .bf-floaters { display: none; }
+
+/* the harvest figure, set in very small type */
+.bf-paper .np-sidebar li:last-child { font-size: 9px; opacity: 0.8; }

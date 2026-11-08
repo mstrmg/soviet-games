@@ -6,7 +6,7 @@ export const DEPARTMENTS = [
     title: 'BACKYARD FURNACE',
     dept: 'Bureau of Domestic Steel',
     blurb: 'Every household a steelworks. Every wok a contribution. Every harvest somebody else\'s concern.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · THREE WEEKS',
     medal: 'Order of the Glowing Furnace',
     poster: { motif: 'furnace', slogan: 'MORE STEEL!', sub: 'FROM EVERY KITCHEN' },
   },
