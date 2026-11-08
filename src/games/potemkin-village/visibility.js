@@ -5,8 +5,9 @@ import * as THREE from 'three';
 
 export const VIEW = {
   eyeHeight: 1.45,
-  halfAngle: THREE.MathUtils.degToRad(52), // how far from straight out of the window he looks
+  halfAngle: THREE.MathUtils.degToRad(40), // how far from straight out of the window he looks (stiff neck)
   range: 42,
+  notice: 0.34, // fraction of an object he must see before he registers it at all
 };
 
 const ray = new THREE.Raycaster();
@@ -55,22 +56,21 @@ export function canSee(eye, dir, p, occluders, own) {
 }
 
 /**
- * Which items are visible from this car position?
+ * How much of each item is visible from this car position?
  * items: [{ worldSamples: Vector3[], own: Set<Mesh> }]
+ * Returns Map(item -> fraction of its sample points in view, 0..1); items not seen are absent.
  */
 export function visibleItems(pos, fwd, windows, items, occluders) {
-  const seen = new Set();
-  for (const dir of lookDirs(fwd, windows)) {
-    const eye = eyeAt(pos, dir);
-    for (const it of items) {
-      if (seen.has(it)) continue;
-      for (const p of it.worldSamples) {
-        if (canSee(eye, dir, p, occluders, it.own)) {
-          seen.add(it);
-          break;
-        }
-      }
+  const seen = new Map();
+  const dirs = lookDirs(fwd, windows);
+  for (const it of items) {
+    const n = it.worldSamples.length;
+    if (!n) continue;
+    let hit = 0;
+    for (const p of it.worldSamples) {
+      if (dirs.some((dir) => canSee(eyeAt(pos, dir), dir, p, occluders, it.own))) hit++;
     }
+    if (hit) seen.set(it, hit / n);
   }
   return seen;
 }

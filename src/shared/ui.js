@@ -85,7 +85,7 @@ export function memo(parent, { no, to, from, subject, body, stamp, buttons = [{ 
   );
   const stampNode = stamp ? el('div.stamp', {}, stamp) : null;
   const node = el('div.memo-wrap', {}, [
-    el('div.memo.paper', { role: 'dialog', 'aria-label': subject || 'Memorandum' }, [
+    el(stamp ? 'div.memo.paper.has-stamp' : 'div.memo.paper', { role: 'dialog', 'aria-label': subject || 'Memorandum' }, [
       header,
       meta,
       el('div.memo-body', {}, paragraphs),

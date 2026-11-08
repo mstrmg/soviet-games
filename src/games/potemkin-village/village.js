@@ -448,14 +448,14 @@ export function buildProp(slot, m, seed = 1) {
     }
     samples = [V(0, 2.5, -0.1), V(-3.5, 2, -0.1), V(3.5, 2, -0.1)];
   } else if (slot.kind === 'banner') {
-    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.3), new THREE.MeshStandardMaterial({ map: bannerTexture(seed % 2 ? 'GLORY TO THE HARVEST' : 'OUR VILLAGE: AHEAD OF PLAN'), side: THREE.DoubleSide }));
-    cloth.position.y = 2.1;
+    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.5), new THREE.MeshStandardMaterial({ map: bannerTexture(seed % 2 ? 'GLORY TO THE HARVEST' : 'OUR VILLAGE: AHEAD OF PLAN'), side: THREE.DoubleSide }));
+    cloth.position.y = 1.6;
     cloth.rotation.y = Math.PI;
     cloth.castShadow = true;
     g.add(cloth);
     occ.push(cloth);
-    for (const x of [-2.55, 2.55]) g.add(box(0.1, 2.8, 0.1, m.woodDark, x, 1.4, 0));
-    samples = [V(0, 2.1, -0.05), V(-2, 2.1, -0.05), V(2, 2.1, -0.05)];
+    for (const x of [-2.55, 2.55]) g.add(box(0.1, 2.5, 0.1, m.woodDark, x, 1.25, 0));
+    samples = [V(0, 1.6, -0.05), V(-2, 1.6, -0.05), V(2, 1.6, -0.05)];
   } else if (slot.kind === 'crowd') {
     const colors = [0xd35d3a, 0x3d6a8a, 0xe9c46a];
     for (let i = 0; i < 3; i++) {

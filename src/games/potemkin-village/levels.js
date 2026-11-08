@@ -2,6 +2,7 @@
 // the inspector drives toward +x, so his right-hand window looks toward +z.
 //
 // things:  what exists in the village. type decides the model; weight is how bad it looks.
+//          label is what he notes if he sees it; praise (optional) is what he admires once it is fixed.
 //          side: 'right' | 'left' (which window can see it, before any occlusion).
 // slots:   where the player can build. kind decides what can go there:
 //            facade  (plywood) a painted house-front that hides whatever is behind it
@@ -11,11 +12,11 @@
 //            window  (plywood) stock the shop window with fake goods target: thing id
 
 export const OPTIONS = {
-  facade: { label: 'PLYWOOD FACADE', cost: { plywood: 2 }, good: 3 },
-  banner: { label: 'BANNER', cost: { paint: 1 }, good: 1.5 },
-  crowd: { label: 'CHEERFUL CITIZENS', cost: { people: 3 }, good: 2.5 },
-  paint: { label: 'PAINT IT', cost: { paint: 1 }, good: 1 },
-  window: { label: 'STOCK THE WINDOW', cost: { plywood: 1 }, good: 2 },
+  facade: { label: 'PLYWOOD FACADE', cost: { plywood: 2 }, good: 8, praise: 'a model dwelling' },
+  banner: { label: 'BANNER', cost: { paint: 1 }, good: 4, praise: 'an inspiring slogan' },
+  crowd: { label: 'CHEERFUL CITIZENS', cost: { people: 3 }, good: 6, praise: 'cheerful citizens' },
+  paint: { label: 'PAINT IT', cost: { paint: 1 }, good: 3, praise: 'a fresh coat of paint' },
+  window: { label: 'STOCK THE WINDOW', cost: { plywood: 1 }, good: 5, praise: 'a well-stocked shop' },
 };
 
 export const LEVELS = [
@@ -28,25 +29,25 @@ export const LEVELS = [
       body: [
         'A Deputy Inspector from the capital will drive through the village tomorrow at 10:00.',
         'He will look out of his right-hand window. He has a stiff neck and has never looked out of the left one.',
-        'You have one night, six sheets of plywood, four tins of paint and nine volunteers. The volunteers have volunteered.',
+        'You have one night, seven sheets of plywood, four tins of paint and nine volunteers. The volunteers have volunteered.',
       ],
     },
     windows: ['right'],
     speed: 6, // metres per second
-    budget: { plywood: 6, paint: 4, people: 9 },
+    budget: { plywood: 7, paint: 4, people: 9 },
     route: [
       [-46, 0],
       [46, 0],
     ],
     things: [
-      { id: 'mud-1', type: 'mud', pos: [-31, 3.5], weight: 1.5, label: 'a sea of mud' },
+      { id: 'mud-1', type: 'mud', pos: [-31, 3.5], weight: 1.5, label: 'a sea of mud', praise: 'a village green' },
       { id: 'house-a', type: 'house', pos: [-25, 9], rot: 0.08, weight: 3, label: 'a house with no roof' },
-      { id: 'fence-1', type: 'fence', pos: [-17, 4], len: 8, weight: 1, label: 'a fence held up by optimism' },
+      { id: 'fence-1', type: 'fence', pos: [-17, 4], len: 8, weight: 1, label: 'a fence held up by optimism', praise: 'a freshly painted fence' },
       { id: 'house-b', type: 'house', pos: [-9, 10], rot: -0.12, weight: 3, label: 'a house leaning on another house' },
       { id: 'house-b2', type: 'house', pos: [-14, 17], rot: 0.2, weight: 2, label: 'a house behind a house' },
       { id: 'well', type: 'well', pos: [-2, 5.5], weight: 1, label: 'a dry well' },
       { id: 'shop', type: 'shop', pos: [5, 8], weight: 3, label: 'an empty shop' },
-      { id: 'mud-2', type: 'mud', pos: [12, 4], weight: 1.5, label: 'more mud' },
+      { id: 'mud-2', type: 'mud', pos: [12, 4], weight: 1.5, label: 'more mud', praise: 'a second village green' },
       { id: 'barn', type: 'barn', pos: [17, 12], weight: 2, label: 'a barn lying down' },
       { id: 'house-c', type: 'house', pos: [26, 9], rot: 0.05, weight: 3, label: 'a house with a tree inside it' },
       { id: 'junk', type: 'junk', pos: [33, 4.5], weight: 2, label: 'a tractor in pieces' },

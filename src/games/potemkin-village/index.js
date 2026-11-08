@@ -15,6 +15,12 @@ const fill = (str, v) => str.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '');
 const NIGHT = { bg: 0x0b1020, hemi: [0x5a6aa0, 0x1a1a24, 1.0], sun: [0x9fb6e8, 1.3], pos: [-20, 30, -25] };
 const DAY = { bg: 0xaebfc6, hemi: [0xf2e8d5, 0x4a4030, 0.7], sun: [0xfff0d8, 2.6], pos: [-30, 22, -18] };
 
+/** Good things seen vs. bad things seen, each weighted by how much of it he saw and for how long. */
+function impressionOf(G, B) {
+  if (G + B < 0.001) return 50;
+  return Math.round((100 * G) / (G + B));
+}
+
 export default function createPotemkin() {
   const s = {
     ctx: null,
@@ -200,7 +206,7 @@ export default function createPotemkin() {
       if (s.phase === 'pack') tickPack(dt);
 
       // day/night blend
-      const target = s.phase === 'inspect' || s.phase === 'report' || s.phase === 'pack' ? 1 : 0;
+      const target = ['inspect', 'report', 'pack', 'paper'].includes(s.phase) ? 1 : 0;
       if (s.dayT !== target) {
         s.dayT += Math.sign(target - s.dayT) * Math.min(Math.abs(target - s.dayT), dt * 0.6);
         blendLight(s.dayT);
@@ -288,7 +294,7 @@ export default function createPotemkin() {
       } else {
         const built = buildProp(slot, s.m, s.props.size + slot.id.length);
         self.scene.add(built.group);
-        const item = { kind: 'prop', slot, built, group: built.group, label: opt.label.toLowerCase() };
+        const item = { kind: 'prop', slot, built, group: built.group, label: opt.praise };
         refreshItem(item);
         s.props.set(slot.id, item);
         s.items.push(item);
@@ -305,7 +311,7 @@ export default function createPotemkin() {
     const occ = occluders();
     const seen = new Set();
     for (const sample of sampleRoute(s.level.route, 2)) {
-      for (const it of visibleItems(sample.pos, sample.fwd, s.level.windows, s.items, occ)) seen.add(it);
+      for (const [it, frac] of visibleItems(sample.pos, sample.fwd, s.level.windows, s.items, occ)) if (frac >= VIEW.notice) seen.add(it);
     }
     let badSeen = 0;
     let badHidden = 0;
@@ -439,13 +445,13 @@ export default function createPotemkin() {
     cam.lookAt(s.car.position.clone().add(new THREE.Vector3(5, 1.5, 6)));
 
     const seen = visibleItems(s.car.position, fwd, s.level.windows, s.items, occluders());
-    for (const it of seen) {
-      if (isBad(it)) dr.B += it.weight * dt;
-      else dr.G += goodWeight(it) * dt;
-      if (!dr.seenOnce.has(it)) {
+    for (const [it, frac] of seen) {
+      if (isBad(it)) dr.B += it.weight * frac * dt;
+      else dr.G += goodWeight(it) * frac * dt;
+      if (frac >= VIEW.notice && !dr.seenOnce.has(it)) {
         dr.seenOnce.add(it);
         const bad = isBad(it);
-        (bad ? dr.noted : dr.praised).push(it.label);
+        (bad ? dr.noted : dr.praised).push(bad || it.kind === 'prop' ? it.label : it.def.praise || OPTIONS[it.fixKind].praise);
         if (dr.remarkT <= 0) {
           remark(pick(bad ? REMARKS.bad : REMARKS.good), bad);
           dr.remarkT = 1.4;
@@ -464,9 +470,7 @@ export default function createPotemkin() {
   }
 
   function impression() {
-    const { G, B } = s.drive;
-    if (G + B < 0.001) return 50;
-    return Math.round((100 * G) / (G + 2 * B));
+    return impressionOf(s.drive.G, s.drive.B);
   }
 
   function remark(text, bad) {
@@ -566,13 +570,16 @@ export default function createPotemkin() {
   async function finish() {
     const { layer, save, audio, scope, manager } = s.ctx;
     const { imp, condition } = s.result;
-    const key = imp >= 60 ? 'good' : 'poor';
+    const key = imp >= 70 ? 'good' : 'poor';
     const np0 = NEWSPAPER[key];
     const vars = { name: s.level.name.charAt(0) + s.level.name.slice(1).toLowerCase(), impression: imp };
     save.awardMedal(GAME_ID, { impression: imp, condition });
     save.setGame(GAME_ID, { best: Math.max(imp, save.game(GAME_ID).best || 0) });
     audio.fanfare();
-    // photograph the village from the road, as the Inspector saw it... before
+    // photograph the village as it is now: the plywood is fourteen kilometres away
+    s.phase = 'paper';
+    self.camera.position.set(-4, 11, -22);
+    self.camera.lookAt(0, 0, 9);
     const photo = manager.snapshot();
     const np = showNewspaper(layer, {
       headline: fill(np0.headline, vars),
@@ -585,6 +592,27 @@ export default function createPotemkin() {
     });
     await np.done;
     if (!scope.disposed) s.ctx.goTo('hub');
+  }
+
+  // Dev only: score the current build without driving, for balancing levels.
+  if (import.meta.env.DEV) {
+    self.__dev = {
+      s,
+      toggle: (id) => toggleSlot(s.level.slots.find((sl) => sl.id === id)),
+      score() {
+        self.scene.updateMatrixWorld(true);
+        const occ = occluders();
+        let G = 0;
+        let B = 0;
+        const bad = new Set();
+        for (const { pos, fwd } of sampleRoute(s.level.route, 1)) {
+          for (const [it, frac] of visibleItems(pos, fwd, s.level.windows, s.items, occ)) {
+            if (isBad(it)) { B += it.weight * frac; if (frac >= VIEW.notice) bad.add(it.def.id); } else G += goodWeight(it) * frac;
+          }
+        }
+        return { imp: impressionOf(G, B), G, B, bad: [...bad] };
+      },
+    };
   }
 
   return self;
