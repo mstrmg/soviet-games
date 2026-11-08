@@ -21,7 +21,7 @@ export const DEPARTMENTS = [
     title: 'PRAVDA EDITOR',
     dept: 'Directorate of Correct Information',
     blurb: 'Bad news arrives at six. The presses roll at seven. Make it good news.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · ACT ONE',
     medal: 'Medal for Correct Information',
     poster: {
       motif: 'megaphone',
