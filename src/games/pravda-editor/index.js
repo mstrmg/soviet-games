@@ -4,8 +4,8 @@ import './pravda-editor.css';
 import { fontsReady } from '../../shared/fonts.js';
 import { el, button, memo, toast } from '../../shared/ui.js';
 import { showNewspaper } from '../../shared/newspaper.js';
-import { ACTS, COMMON_TILES, START_METERS, DAY_SECONDS, STANCE_LABELS, REACTIONS, ENDINGS } from './stories.js';
-import { SLOTS, SLOT_LABELS, stanceOf, claimOf, contradiction, headlineText, evaluateDay, clampMeters, endingFor } from './rules.js';
+import { ACTS, COMMON_TILES, START_METERS, DAY_SECONDS, STANCE_LABELS, REACTIONS, ENDINGS, CROSSWORD_WORD, REVISION_EFFECTS } from './stories.js';
+import { SLOTS, SLOT_LABELS, stanceOf, claimOf, contradiction, headlineText, evaluateDay, clampMeters, endingFor, crosswordRisk, BELIEF_THRESHOLD } from './rules.js';
 import { buildDesk, updateSmoke } from './desk.js';
 
 const GAME_ID = 'pravda-editor';
@@ -31,6 +31,9 @@ export default function createPravdaEditor() {
     ring: 0,
     manTarget: null,
     lastWarn: false,
+    crossword: null, // id of a buried story hidden in tonight's crossword
+    crosswords: 0,
+    crisis: { heard: 0, ignored: 0, hidden: 0 },
   };
 
   const self = {
@@ -60,13 +63,13 @@ export default function createPravdaEditor() {
     async start() {
       const { scope, layer, save } = s.ctx;
       const saved = save.game(GAME_ID);
-      if (saved.inProgress && saved.day > 0) {
+      if (saved.inProgress && (saved.day > 0 || saved.act > 0)) {
         const m = memo(layer, {
           no: 'P-0/00',
           to: 'Comrade Editor',
           from: 'Personnel Department',
           subject: 'You are still employed',
-          body: [`Our records show you have edited ${saved.day} issue(s) of the current run.`, 'You may continue, or begin again with a clean record. A clean record is always available.'],
+          body: [`Our records show you have edited ${saved.pages?.length || saved.day} issue(s) of the current run.`, 'You may continue, or begin again with a clean record. A clean record is always available.'],
           buttons: [
             { label: 'BEGIN AGAIN', value: 'new' },
             { label: 'CONTINUE', value: 'continue', variant: 'red' },
@@ -74,7 +77,7 @@ export default function createPravdaEditor() {
         });
         const choice = await m.done;
         if (scope.disposed) return;
-        if (choice === 'continue') Object.assign(s, { act: saved.act, day: saved.day, meters: saved.meters, notebook: saved.notebook, euphUses: saved.euphUses, pages: saved.pages });
+        if (choice === 'continue') Object.assign(s, { act: saved.act, day: saved.day, meters: saved.meters, notebook: saved.notebook, euphUses: saved.euphUses, pages: saved.pages, crosswords: saved.crosswords || 0, crisis: saved.crisis || s.crisis });
       }
       s.pages.forEach(() => s.refs.addPage());
       startDay();
@@ -158,6 +161,8 @@ export default function createPravdaEditor() {
       notebook: s.notebook,
       euphUses: s.euphUses,
       pages: s.pages,
+      crosswords: s.crosswords,
+      crisis: s.crisis,
       ...extra,
     });
   }
@@ -230,14 +235,25 @@ export default function createPravdaEditor() {
     s.tiles = [];
     s.timeLeft = DAY_SECONDS;
     s.lastWarn = false;
+    s.crossword = null;
     s.phase = 'directives';
+    if (d.reverse && !s.notebook.some((e) => e.official && e.date === d.date && e.text === d.reverse.text)) {
+      // Official Reality changes, and has always been this way
+      for (const e of s.notebook) if (e.topic === d.reverse.topic && e.claim !== d.reverse.claim) e.superseded = true;
+      s.notebook.push({ topic: d.reverse.topic, claim: d.reverse.claim, text: d.reverse.text, date: d.date, official: true });
+    }
     s.refs.calendar.draw(d.date);
     s.refs.setSeason(d.season);
     s.ui.dayLabel.textContent = `${act().title.split('·')[0].trim()} · ${d.date}`;
     renderDesk();
 
+    const ai = act().intro;
     const intro =
-      s.act === 0 && s.day === 0
+      s.day === 0 && ai && s.act > 0
+        ? [
+            memo(layer, { no: ai.no, to: 'Comrade Editor-in-Chief', from: ai.from, subject: ai.subject, body: ai.body, stamp: ai.stamp, buttons: [{ label: ai.button, value: true, variant: 'red' }] }).done,
+          ]
+        : s.act === 0 && s.day === 0
         ? [
             memo(layer, {
               no: 'P-1/001',
@@ -254,7 +270,9 @@ export default function createPravdaEditor() {
             }).done,
           ]
         : [];
-    Promise.all(intro).then(() => {
+    Promise.all(intro)
+      .then(() => (d.revise && !scope.disposed ? reviseArchive(d.revise) : null))
+      .then(() => {
       if (scope.disposed) return;
       ringPhone(2.1);
       const m = memo(layer, {
@@ -320,14 +338,122 @@ export default function createPravdaEditor() {
     pressBtn.disabled = !(headlineStory() && s.tiles.length >= 2) || s.phase !== 'desk';
     s.ui.dummy.replaceChildren(
       el('div.pe-dummy-mast', {}, 'PRAVDA'),
-      el('div.pe-dummy-date', {}, `${d.date} 1978 · EVENING EDITION`),
+      el('div.pe-dummy-date', {}, `${d.date} ${act().year || 1978} · EVENING EDITION`),
       slotNode('headline'),
       slotNode('lead'),
       slotNode('fold'),
       el('div.pe-dummy-row', {}, [slotNode('page6'), slotNode('bin')]),
+      crosswordNode(),
       pressBtn,
     );
     renderBuilder();
+  }
+
+  // ---- the crossword: a buried story, hidden for readers who know how to look ----------
+  function crosswordCandidates() {
+    return day().wires.filter((w) => w.truth === 'bad' && (s.placements[w.id] === 'page6' || s.placements[w.id] === 'bin'));
+  }
+
+  function crosswordNode() {
+    if (!act().crossword) return null;
+    const cands = crosswordCandidates();
+    if (s.crossword && !cands.some((w) => w.id === s.crossword)) s.crossword = null;
+    const cur = cands.find((w) => w.id === s.crossword);
+    const risk = Math.round(crosswordRisk(s.meters.approval, s.crosswords) * 100);
+    const b = el(
+      `button.pe-cross${cur ? '.on' : ''}`,
+      {
+        type: 'button',
+        disabled: !cands.length || s.phase !== 'desk',
+        title: 'Hide the truth of a buried story in the page 6 crossword',
+        onclick: () => {
+          const i = cands.findIndex((w) => w.id === s.crossword);
+          s.crossword = i + 1 < cands.length ? cands[i + 1].id : null;
+          s.ctx.audio.clack();
+          renderDesk();
+        },
+      },
+      [
+        el('span.pe-cross-k', {}, 'CROSSWORD · P. 6'),
+        el('span.pe-cross-v', {}, cur ? `14 ACROSS: "${CROSSWORD_WORD(cur)}" (from ${cur.slug})` : cands.length ? 'Ordinary clues. Click to hide a buried story in it.' : 'Bury or bin a bad story to hide it here.'),
+        cur ? el('span.pe-cross-risk', {}, `Chance the Censor solves it: ${risk}%`) : null,
+      ],
+    );
+    return b;
+  }
+
+  // ---- revising the archive: unpersons, and allies who were always enemies --------------
+  function reviseArchive(rv) {
+    const { layer, scope } = s.ctx;
+    const term = rv.term.toLowerCase();
+    const mentions = (p) => [p.headline, p.deck, ...(p.columns || [])].join(' ').toLowerCase().includes(term);
+    const hits = s.pages.filter((p) => mentions(p) && !p.revised);
+    if (!hits.length) {
+      s.meters = clampMeters({ ...s.meters, approval: s.meters.approval + 3 });
+      renderMeters({ approval: 3 });
+      return memo(layer, { no: `ARC-${s.day + 1}`, to: 'Comrade Editor', from: 'The Archive', subject: `Editions mentioning ${rv.term}`, body: [rv.why, rv.clean], stamp: 'CLEAN', buttons: [{ label: 'PROCEED', value: true, variant: 'red' }] }).done;
+    }
+    return new Promise((resolve) => {
+      const choice = new Map();
+      const rows = hits.map((p) => {
+        const btns = Object.keys(REVISION_EFFECTS).map((k) =>
+          el(`button.pe-rev-b`, {
+            type: 'button',
+            'data-k': k,
+            onclick: () => {
+              choice.set(p, k);
+              s.ctx.audio.clack();
+              btns.forEach((b) => b.classList.toggle('on', b.dataset.k === k));
+              done.disabled = choice.size < hits.length;
+            },
+          }, { rewrite: 'REWRITE THE ARCHIVE', correct: 'PRINT A CORRECTION', leave: 'LEAVE IT' }[k]),
+        );
+        return el('div.pe-rev-row', {}, [el('div.pe-rev-date', {}, p.date), el('div.pe-rev-h', {}, p.headline), el('div.pe-rev-btns', {}, btns)]);
+      });
+      const done = button('FILE THE REVISIONS', () => {
+        const delta = { approval: 0, credibility: 0, conscience: 0 };
+        for (const [p, k] of choice) {
+          const e = REVISION_EFFECTS[k];
+          for (const m of Object.keys(delta)) delta[m] += e[m];
+          if (k === 'rewrite') {
+            const fix = (t) => {
+              let out = t;
+              for (const [from, to] of rv.replace || []) out = out.replace(new RegExp(`\\b${from}('S)?\\b`, 'gi'), to);
+              return out.replace(/\s{2,}/g, ' ').replace(/\s([.,!])/g, '$1').trim();
+            };
+            p.headline = rv.rewriteTo || fix(p.headline) || '[HEADLINE WITHDRAWN]';
+            p.deck = fix(p.deck);
+            p.columns = (p.columns || []).map(fix);
+          }
+          if (k === 'correct') p.columns = [...(p.columns || []), `CORRECTION: this edition referred to ${rv.term.charAt(0) + rv.term.slice(1).toLowerCase()} in terms that were, at the time, correct.`];
+          if (k !== 'leave') p.revised = true;
+        }
+        for (const e of s.notebook) {
+          if (!e.text.toLowerCase().includes(term) && !(rv.topic && e.topic === rv.topic)) continue;
+          if (rv.claim && e.claim !== rv.claim) e.superseded = true;
+          for (const [from, to] of rv.replace || []) e.text = e.text.replace(new RegExp(`\\b${from}('S)?\\b`, 'gi'), to).trim();
+        }
+        if (rv.claim) s.notebook.push({ topic: rv.topic, claim: rv.claim, text: rv.rewriteTo || rv.term, date: day().date, official: true });
+        const before = { ...s.meters };
+        s.meters = clampMeters({ approval: s.meters.approval + delta.approval, credibility: s.meters.credibility + delta.credibility, conscience: s.meters.conscience + delta.conscience });
+        renderMeters({ approval: s.meters.approval - before.approval, credibility: s.meters.credibility - before.credibility });
+        s.ctx.audio.stamp();
+        wrap.remove();
+        resolve();
+      }, { variant: 'red' });
+      done.disabled = true;
+      const wrap = el('div.memo-wrap', {}, [
+        el('div.pe-modal.pe-rev.paper', { role: 'dialog', 'aria-label': 'Revise the archive' }, [
+          el('div.pe-modal-h', {}, `THE ARCHIVE · EDITIONS MENTIONING ${rv.term}`),
+          el('p.pe-nb-intro', {}, rv.why),
+          el('p.pe-rev-key', {}, 'Rewrite: the edition is quietly reprinted, and always said this. Correction: a notice admits the edition existed. Leave it: the edition stands, and so do you, for now.'),
+          ...rows,
+          el('div.memo-actions', {}, done),
+        ]),
+      ]);
+      layer.append(wrap);
+      if (scope.disposed) resolve();
+    });
   }
 
   function selectWire(id) {
@@ -367,7 +493,7 @@ export default function createPravdaEditor() {
     s.ui.builder.classList.add('open');
     const palette = [...story.tiles, ...COMMON_TILES];
     const stance = s.tiles.length ? stanceOf(s.tiles, story) : null;
-    const clash = stance ? contradiction(s.notebook, story.topic, claimOf(stance)) : null;
+    const clash = stance ? contradiction(s.notebook, story.topic, claimOf(stance, story)) : null;
     const worn = s.tiles.some((t) => t.k === 'euph') ? Object.entries(s.euphUses).find(([p, n]) => n >= 2 && p === s.tiles.filter((t) => t.k === 'euph').map((t) => t.w).join(' ')) : null;
 
     s.ui.builder.replaceChildren(
@@ -423,18 +549,21 @@ export default function createPravdaEditor() {
       result = { delta: { approval: -15, credibility: -5, conscience: 0 }, notes: [{ kind: 'partyAngry', text: 'The front page went out without a headline.' }], notebookAdds: [], euphUses: s.euphUses, stance: null };
       for (const w of d.wires) if (!s.placements[w.id]) s.placements[w.id] = 'bin';
     } else {
-      result = evaluateDay(d, s.day, s.placements, s.tiles, { notebook: s.notebook, euphUses: s.euphUses });
+      const cw = s.crossword && act().crossword ? { id: s.crossword, caught: Math.random() < crosswordRisk(s.meters.approval, s.crosswords) } : null;
+      if (cw) s.crosswords++;
+      result = evaluateDay(d, s.day, s.placements, s.tiles, { notebook: s.notebook, euphUses: s.euphUses, meters: s.meters, crossword: cw });
     }
+    if (result.crisis) for (const k of Object.keys(s.crisis)) s.crisis[k] += result.crisis[k];
 
     // the front page as printed
     const leadStory = wire(inSlot('lead')[0]);
     const foldStory = wire(inSlot('fold')[0]);
     const page = {
-      date: `${d.date} 1978`,
+      date: `${d.date} ${act().year || 1978}`,
       headline: story ? headlineText(s.tiles) || story.slug : 'NO HEADLINE TODAY',
       deck: leadStory ? leadStory.slug : 'All is well',
       columns: [leadStory?.print, foldStory ? `${foldStory.slug}. ${foldStory.print}` : null].filter(Boolean),
-      sidebar: { title: 'ALSO IN THIS ISSUE', items: inSlot('page6').map((id) => `p. 6 — ${wire(id).slug}`).concat(['p. 4 — Letters of gratitude']) },
+      sidebar: { title: 'ALSO IN THIS ISSUE', items: inSlot('page6').map((id) => `p. 6 — ${wire(id).slug}`).concat(['p. 4 — Letters of gratitude'], s.crossword && act().crossword ? ['p. 6 — Crossword (14 across: seven letters)'] : []) },
     };
     if (!page.columns.length) page.columns = ['The editors are pleased to report that there is nothing further to report.'];
     s.pages.push(page);
@@ -461,12 +590,16 @@ export default function createPravdaEditor() {
     for (const n of result.notes) {
       if (n.kind === 'worn') lines.push(pick(REACTIONS.worn).replace('{phrase}', n.phrase));
       else if (n.kind === 'contradiction') lines.push(`${n.text} ${pick(REACTIONS.contradiction)}`);
+      else if (n.kind === 'crosswordSafe' || n.kind === 'crosswordCaught') lines.push(pick(REACTIONS[n.kind]).replace('{word}', CROSSWORD_WORD(n.story)));
       else if (n.text) lines.push(n.text);
     }
+    if (result.crisis?.heard) lines.push(pick(REACTIONS.crisisHeard));
+    if (result.crisis?.ignored) lines.push(pick(REACTIONS.crisisIgnored));
     if (s.meters.approval < 40) lines.push('A man in a grey coat was seen in the corridor outside your office. He did not appear to be waiting for anyone else.');
 
     const lastDay = s.day >= act().days.length - 1;
-    const ending = endingFor(s.meters, { finalDay: lastDay });
+    const lastAct = s.act >= ACTS.length - 1;
+    const ending = endingFor(s.meters, { finalDay: lastDay && lastAct });
     const m = memo(layer, {
       no: `AM-${s.day + 1}`,
       to: 'Comrade Editor',
@@ -479,9 +612,22 @@ export default function createPravdaEditor() {
     if (scope.disposed) return;
 
     if (ending) return finish(ending);
-    s.day += 1;
+    if (lastDay) {
+      s.act += 1;
+      s.day = 0;
+    } else s.day += 1;
     persist();
     startDay();
+  }
+
+  function crisisLines() {
+    if (s.act < ACTS.length - 1) return [];
+    const { heard, ignored, hidden } = s.crisis;
+    const r = (n) => Math.round(n * 10) / 10;
+    const lines = [`Severny: warnings readers acted on, ${r(heard)}; warnings readers dismissed, ${r(ignored)}; accident stories kept from them, ${r(hidden)}. (Weighted by importance. These figures were also never recorded.)`];
+    if (ignored > heard) lines.push(`When the paper finally told the truth, readers no longer believed it. Credibility below ${BELIEF_THRESHOLD} means a warning is read as more of the same.`);
+    else if (heard > 0) lines.push('When the paper told the truth, readers believed it, because it had not used up their belief on anything else.');
+    return lines;
   }
 
   async function finish(key) {
@@ -499,7 +645,7 @@ export default function createPravdaEditor() {
       body: [
         e.text,
         `Party approval ${Math.round(s.meters.approval)} · Credibility ${Math.round(s.meters.credibility)} · Conscience ${Math.round(s.meters.conscience)} (this figure was never shown to you, and was never recorded).`,
-        'Acts Two and Three (cover-ups, purges, and a real crisis) are being written. Their existence will be announced in due course.',
+        ...crisisLines(),
       ],
       stamp: e.title,
       buttons: [
@@ -541,7 +687,7 @@ export default function createPravdaEditor() {
     s.ctx.audio.click();
     const entries = s.notebook.length
       ? s.notebook.map((n) =>
-          el(`div.pe-nb.${n.claim}`, {}, [el('span.pe-nb-date', {}, n.date), el('span.pe-nb-topic', {}, n.topic.toUpperCase()), el('span.pe-nb-text', {}, `"${n.text}"`), n.revised ? el('span.pe-nb-rev', {}, 'REVISED') : null]),
+          el(`div.pe-nb.${n.claim}${n.superseded ? '.superseded' : ''}`, {}, [el('span.pe-nb-date', {}, n.date), el('span.pe-nb-topic', {}, n.topic.toUpperCase()), el('span.pe-nb-text', {}, `"${n.text}"`), n.official ? el('span.pe-nb-rev.pe-nb-off', {}, 'OFFICIAL') : n.superseded ? el('span.pe-nb-rev.pe-nb-sup', {}, 'SUPERSEDED') : n.revised ? el('span.pe-nb-rev', {}, 'REVISED') : null]),
         )
       : [el('p.pe-nb-empty', {}, 'Nothing has been printed yet. Reality is still open.')];
     const worn = Object.entries(s.euphUses).filter(([, n]) => n >= 2);

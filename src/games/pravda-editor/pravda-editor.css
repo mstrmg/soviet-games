@@ -118,3 +118,26 @@
   .pe-builder { left: 284px; right: 324px; }
   .pe-meter { width: 120px; }
 }
+
+/* ---------- Acts Two and Three ---------- */
+.pe-nb.superseded .pe-nb-text { text-decoration: line-through; opacity: 0.6; }
+.pe-nb-off { background: var(--ink, #1a1a1a); }
+.pe-nb-sup { background: #7d7a74; }
+.pe-cross {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; margin: 6px 0 8px; padding: 6px 10px; text-align: left; cursor: pointer;
+  background: repeating-linear-gradient(90deg, transparent 0 13px, rgba(0,0,0,0.08) 13px 14px), #f4efe2; border: 2px dashed rgba(0,0,0,0.35); color: var(--ink, #1a1a1a);
+}
+.pe-cross:disabled { cursor: default; opacity: 0.55; }
+.pe-cross.on { border-style: solid; border-color: var(--red); }
+.pe-cross-k { font: 600 10px var(--body); letter-spacing: 0.18em; }
+.pe-cross-v { font: 13px/1.3 var(--type); }
+.pe-cross-risk { font: 600 11px var(--body); color: var(--red-dark, #8a1a18); letter-spacing: 0.06em; }
+.pe-rev { max-width: 760px; }
+.pe-rev-key { font: italic 13px/1.4 var(--type); color: #5a564e; margin: 0 0 8px; }
+.pe-rev-row { display: grid; grid-template-columns: 100px 1fr; gap: 4px 12px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.2); }
+.pe-rev-date { font: 600 11px var(--body); letter-spacing: 0.1em; padding-top: 4px; }
+.pe-rev-h { font: 20px/1.1 var(--display); }
+.pe-rev-btns { grid-column: 2; display: flex; gap: 6px; flex-wrap: wrap; }
+.pe-rev-b { font: 600 11px var(--body); letter-spacing: 0.1em; padding: 5px 9px; border: 2px solid var(--ink, #1a1a1a); background: transparent; cursor: pointer; }
+.pe-rev-b.on { background: var(--ink, #1a1a1a); color: var(--cream, #f2e8d5); }
+.pe-rev-b.on[data-k="leave"] { background: var(--red); border-color: var(--red); }

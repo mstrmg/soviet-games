@@ -19,7 +19,8 @@ export function stanceOf(tiles, story) {
 }
 
 /** good / bad / null: what the headline asserts about its topic, for the continuity notebook. */
-export function claimOf(stance) {
+export function claimOf(stance, story) {
+  if (stance === 'blame' && story?.blameClaim) return story.blameClaim;
   if (stance === 'praise' || stance === 'denial' || stance === 'blame') return 'good';
   if (stance === 'truth') return 'bad';
   return null;
@@ -53,9 +54,14 @@ function partyDelta(want, slot) {
   return table[want]?.[slot] ?? 0;
 }
 
+/** Do readers act on a warning? Only if they still believe the paper. */
+export const BELIEF_THRESHOLD = 45;
+
 /**
  * Evaluate a finished front page.
- * state = { notebook: [{topic, claim, text, day}], euphUses: {phrase: n} }
+ * state = { notebook: [{topic, claim, text, day}], euphUses: {phrase: n}, meters, crossword: { id, caught } | null }
+ * crisis (Act Three): { heard, ignored, hidden } — warnings readers acted on, warnings dismissed,
+ * and accident stories kept off the front page; weighted by importance.
  * Returns { delta: {approval, credibility, conscience}, notes: [{kind, text}], notebookAdds, euphUses, stance }
  */
 export function evaluateDay(day, dayIndex, placements, headlineTiles, state) {
@@ -69,6 +75,13 @@ export function evaluateDay(day, dayIndex, placements, headlineTiles, state) {
     delta.conscience += (d.conscience || 0) * scale;
   };
   let stance = null;
+  const crisis = { heard: 0, ignored: 0, hidden: 0 };
+  const believed = (state.meters?.credibility ?? 100) >= BELIEF_THRESHOLD;
+  const warn = (story, strength) => {
+    if (!story.crisis) return;
+    if (believed) crisis.heard += strength * story.importance;
+    else crisis.ignored += strength * story.importance;
+  };
 
   for (const story of day.wires) {
     const slot = placements[story.id] || 'bin';
@@ -93,7 +106,9 @@ export function evaluateDay(day, dayIndex, placements, headlineTiles, state) {
           }
         }
       }
-      const claim = claimOf(stance);
+      if (stance === 'truth') warn(story, 1);
+      else if (story.crisis && story.truth === 'bad') crisis.hidden += story.importance;
+      const claim = claimOf(stance, story);
       const clash = contradiction(state.notebook, story.topic, claim);
       if (clash) {
         add({ approval: -8, credibility: -8 });
@@ -104,6 +119,7 @@ export function evaluateDay(day, dayIndex, placements, headlineTiles, state) {
       // printed as reported
       if (story.truth === 'bad') {
         add({ credibility: story.visible ? 4 : 2, conscience: story.importance * 2 });
+        warn(story, slot === 'fold' ? 0.4 : 0.6);
         const clash = contradiction(state.notebook, story.topic, 'bad');
         if (clash) {
           add({ approval: -6, credibility: -4 });
@@ -118,11 +134,30 @@ export function evaluateDay(day, dayIndex, placements, headlineTiles, state) {
       const hidden = slot === 'bin' ? 1 : 0.4;
       if (story.visible) add({ credibility: -6 * hidden });
       add({ conscience: -3 * story.importance * hidden });
+      if (story.crisis) crisis.hidden += story.importance * hidden;
+    }
+  }
+
+  // the crossword on page 6: the truth, for readers who know how to look
+  if (state.crossword) {
+    const story = day.wires.find((w) => w.id === state.crossword.id);
+    if (story) {
+      if (state.crossword.caught) {
+        add({ approval: -14 });
+        notes.push({ kind: 'crosswordCaught', story });
+      } else {
+        add({ credibility: 2, conscience: 2 + story.importance * 2 });
+        notes.push({ kind: 'crosswordSafe', story });
+        if (story.crisis) {
+          crisis.hidden = Math.max(0, crisis.hidden - story.importance * 0.3);
+          crisis.heard += 0.3 * story.importance;
+        }
+      }
     }
   }
 
   for (const k of Object.keys(delta)) delta[k] = Math.round(delta[k]);
-  return { delta, notes, notebookAdds, euphUses, stance };
+  return { delta, notes, notebookAdds, euphUses, stance, crisis };
 }
 
 export function clampMeters(m) {
@@ -131,6 +166,11 @@ export function clampMeters(m) {
     credibility: Math.max(0, Math.min(100, m.credibility)),
     conscience: Math.max(0, Math.min(100, m.conscience)),
   };
+}
+
+/** How likely the Censor is to solve tonight's crossword. */
+export function crosswordRisk(approval, previous) {
+  return Math.max(0.1, Math.min(0.85, 0.15 + (55 - approval) / 100 + previous * 0.1));
 }
 
 export function endingFor(m, { finalDay = false } = {}) {
