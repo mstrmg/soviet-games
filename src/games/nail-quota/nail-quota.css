@@ -1,0 +1,80 @@
+/* NAIL QUOTA — overlay styles. Everything is prefixed nq- */
+.nq-banner { max-width: 46vw; }
+.nq-record { display: flex; gap: 6px; margin-top: 8px; }
+.nq-rec-star {
+  width: 26px; height: 26px; display: grid; place-items: center; font: 16px var(--display); color: var(--grey-light);
+  border: 2px dashed var(--grey);
+}
+.nq-rec-star.current { border: 2px solid var(--cream); color: var(--cream); }
+.nq-rec-star.g0 { background: var(--grey-dark); color: var(--red); border: 2px solid var(--red); }
+.nq-rec-star.g1, .nq-rec-star.g2, .nq-rec-star.g3 { background: var(--gold); color: var(--black); border: 2px solid #8a6a10; }
+.nq-rec-star.g3 { box-shadow: 0 0 10px var(--gold); }
+
+.nq-panel {
+  position: absolute; top: 84px; right: 22px; bottom: 22px; width: 360px; overflow-y: auto;
+  background: var(--cream); color: var(--black); border: 3px solid var(--black); box-shadow: 8px 8px 0 var(--black);
+  display: flex; flex-direction: column; animation: nqPanelIn 0.4s cubic-bezier(.2,.9,.3,1.1);
+}
+@keyframes nqPanelIn { from { transform: translateX(420px); } }
+.nq-panel.nq-locked { opacity: 0.6; }
+.nq-quota { background: var(--red); color: var(--cream); padding: 10px 14px 12px; }
+.nq-quota-k { font: 600 11px var(--body); letter-spacing: 0.24em; }
+.nq-quota-v { font: 40px/1 var(--display); letter-spacing: 0.02em; margin: 2px 0 8px; }
+.nq-quota-txt { font: 13px/1.3 var(--type); margin-top: 6px; }
+.nq-bar { height: 12px; background: rgba(0,0,0,0.18); border: 2px solid var(--black); position: relative; overflow: hidden; }
+.nq-bar-quota { background: rgba(0,0,0,0.35); border-color: var(--black); }
+.nq-bar-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--grey-dark); transition: width 0.15s; }
+.nq-bar-fill.over { background: var(--red); }
+.nq-quota-fill { background: var(--cream); }
+.nq-quota-fill.met { background: var(--gold); }
+.nq-section { padding: 10px 14px; border-top: 2px solid var(--black); }
+.nq-h { font: 600 11px var(--body); letter-spacing: 0.2em; margin-bottom: 6px; }
+.nq-blueprint { width: 100%; height: auto; display: block; border: 2px solid var(--black); }
+.nq-spec { font: 13px var(--type); margin-top: 6px; }
+.nq-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 2px 8px; margin: 6px 0 10px; }
+.nq-row input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--red); height: 22px; cursor: pointer; }
+.nq-row .btn-small { grid-row: 1; grid-column: 3; padding: 3px 8px 1px; }
+.nq-lbl { font: 600 12px var(--body); letter-spacing: 0.16em; }
+.nq-val { font: 24px/1 var(--display); letter-spacing: 0.03em; }
+.nq-res { margin: 4px 0 10px; }
+.nq-res-l { font: 600 12px var(--body); letter-spacing: 0.12em; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.nq-res-l span { font-family: var(--type); letter-spacing: 0; font-weight: 400; }
+.nq-problems { padding: 0 14px; font: 13px/1.35 var(--type); color: var(--red-dark); min-height: 0; }
+.nq-problems div { margin: 4px 0; }
+.nq-produce { margin: 10px 14px 14px; font-size: 26px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--black); }
+
+/* evaluation memo sits to the side so the output stays visible */
+.memo-wrap.nq-eval { background: transparent; place-items: center start; padding-left: 4vw; }
+.nq-remark { display: block; font-style: italic; color: var(--grey-dark); border-left: 3px solid var(--red); padding-left: 10px; }
+
+/* Five-Year Report */
+.nq-report {
+  position: relative; width: min(980px, 96vw); max-height: 92vh; overflow: auto; padding: 24px 28px 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.55), 6px 6px 0 var(--black); transform: rotate(-0.4deg); animation: memoIn 0.45s cubic-bezier(.2,.9,.3,1.2);
+}
+.nq-table { width: 100%; border-collapse: collapse; margin: 16px 0; font: 14px var(--type); }
+.nq-table th { font: 600 11px var(--body); letter-spacing: 0.14em; text-transform: uppercase; text-align: left; border-bottom: 2px solid var(--ink); padding: 6px 6px; }
+.nq-table td { padding: 7px 6px; border-bottom: 1px solid rgba(0,0,0,0.18); vertical-align: top; }
+.nq-table .num { text-align: right; white-space: nowrap; }
+.nq-table th.nq-classified { color: var(--red-dark); }
+.nq-verdict { font: 18px var(--display); letter-spacing: 0.05em; }
+.nq-verdict.g0 { color: var(--red); }
+.nq-verdict.g1, .nq-verdict.g2, .nq-verdict.g3 { color: #6d5410; }
+.nq-secret .nq-truth { display: none; }
+.nq-secret .nq-redact { color: var(--ink); letter-spacing: -1px; }
+.nq-secret.shown .nq-truth { display: inline; animation: typeIn 0.4s steps(8); }
+.nq-secret.shown .nq-redact { display: none; }
+.nq-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+.nq-score { border: 3px solid var(--ink); padding: 10px 14px; }
+.nq-score-secret { border-color: var(--red); }
+.nq-score-k { font: 600 12px var(--body); letter-spacing: 0.2em; }
+.nq-big { font: 72px/1 var(--display); }
+.nq-score-secret .nq-big { color: var(--red); }
+.nq-score-s { font: 13px var(--type); }
+.nq-declass { left: auto; right: 40px; bottom: 90px; }
+
+@media (max-width: 900px) {
+  .nq-panel { top: auto; left: 10px; right: 10px; width: auto; height: 46vh; }
+  .nq-summary { grid-template-columns: 1fr; }
+}
