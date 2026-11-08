@@ -54,3 +54,24 @@ export const LOBBY_NOTICES = [
   'The clock is four minutes ahead of plan.',
   'Citizens are reminded that the Enquiries window has always been closed.',
 ];
+
+// How this wing's lobby dresses itself. The other wings have their own (src/wings/*/departments.js).
+export const LOBBY = {
+  wing: 'ussr',
+  masthead: { kicker: "People's Directorate of Approved Leisure", title: ['MINISTRY', 'OF GAMES'], sub: 'Est. 1922 · Rebuilt 1946 · Repairs scheduled' },
+  admission: {
+    no: '000001',
+    from: 'Duty Officer, Main Lobby',
+    subject: 'Admission to the Ministry of Games',
+    body: [
+      'You are expected. You have always been expected.',
+      'Beyond this lobby are three Departments of Approved Leisure. Each is entirely voluntary. Attendance will be recorded.',
+      'Please present your permit to the officer, who is on lunch.',
+    ],
+    button: 'PRESENT PERMIT',
+  },
+  banner: 'LEISURE IS LABOUR  ★  LABOUR IS LEISURE  ★  FULFIL THE PLAN FOR FUN',
+  nameplate: ['THE MINISTER OF GAMES', 'UNDEFEATED SINCE 1953'],
+  portrait: {},
+  wallTint: 0xffffff,
+};

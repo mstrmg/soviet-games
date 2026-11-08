@@ -281,6 +281,86 @@ export function posterTexture(dept) {
       ctx.arc(w * 0.38, h * 0.74, 14, 0, Math.PI * 2);
       ctx.arc(w * 0.66, h * 0.74, 14, 0, Math.PI * 2);
       ctx.fill();
+    } else {
+      // the newer wings: one composition, one emblem per department
+      ctx.fillStyle = C.red;
+      ctx.fillRect(0, 0, w, h * 0.66);
+      ctx.fillStyle = C.black;
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.66);
+      ctx.lineTo(w, h * 0.36);
+      ctx.lineTo(w, h * 0.66);
+      ctx.fill();
+      ctx.fillStyle = C.gold;
+      ctx.beginPath();
+      ctx.arc(w * 0.68, h * 0.42, 110, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.save();
+      ctx.translate(w * 0.62, h * 0.45);
+      ctx.fillStyle = C.black;
+      ctx.strokeStyle = C.black;
+      ctx.lineWidth = 12;
+      if (motif === 'furnace') {
+        ctx.fillRect(-60, -40, 120, 110);
+        ctx.fillRect(-18, -150, 36, 120);
+        ctx.fillStyle = '#f08a24';
+        ctx.fillRect(-30, 0, 60, 40);
+      } else if (motif === 'wheat') {
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.moveTo(i * 22, 110);
+          ctx.lineTo(i * 30, -60);
+          ctx.stroke();
+          for (let k = 0; k < 5; k++) {
+            ctx.beginPath();
+            ctx.ellipse(i * 30 - 9, -60 + k * 22, 7, 13, -0.5, 0, Math.PI * 2);
+            ctx.ellipse(i * 30 + 9, -60 + k * 22, 7, 13, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (motif === 'sparrow') {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 60, 30, -0.2, 0, Math.PI * 2);
+        ctx.moveTo(-10, -10);
+        ctx.lineTo(-90, -90);
+        ctx.lineTo(30, -20);
+        ctx.fill();
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(0, 0, 100, 0, Math.PI * 2);
+        ctx.moveTo(-130, 0);
+        ctx.lineTo(130, 0);
+        ctx.moveTo(0, -130);
+        ctx.lineTo(0, 130);
+        ctx.stroke();
+      } else if (motif === 'car') {
+        ctx.fillRect(-120, -10, 240, 60);
+        ctx.fillRect(-70, -60, 130, 55);
+        ctx.fillStyle = C.gold;
+        ctx.fillRect(-55, -48, 45, 35);
+        ctx.fillRect(0, -48, 45, 35);
+        ctx.fillStyle = C.black;
+        ctx.beginPath();
+        ctx.arc(-70, 55, 24, 0, Math.PI * 2);
+        ctx.arc(70, 55, 24, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (motif === 'ear') {
+        ctx.beginPath();
+        ctx.arc(0, -10, 70, Math.PI * 0.9, Math.PI * 2.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(5, -5, 35, Math.PI, Math.PI * 2.2);
+        ctx.stroke();
+        ctx.fillRect(-60, 80, 120, 16);
+      } else {
+        // microphone
+        ctx.beginPath();
+        ctx.ellipse(0, -60, 45, 65, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-10, 0, 20, 110);
+        ctx.fillRect(-60, 105, 120, 18);
+      }
+      ctx.restore();
     }
 
     // slogan
@@ -335,40 +415,53 @@ export function posterTexture(dept) {
 }
 
 /** Portrait of the Minister. He does not smile. He has never smiled. */
-export function portraitTexture() {
+/**
+ * Official portrait. Variants share one face, as officials tend to.
+ * opts: { bg: [inner, outer], suit, collar ('tie'|'tunic'), hair, moustache, glasses, medalRows, mouth ('line'|'smile') }
+ */
+export function portraitTexture(opts = {}) {
+  const o = { bg: ['#5d6152', '#262822'], suit: '#1f1e1c', collar: 'tie', hair: '#8c8a84', moustache: true, glasses: false, medalRows: 3, mouth: 'line', ...opts };
   return canvasTexture(384, 480, (ctx, w, h) => {
     const r = rng(1917);
     const bg = ctx.createRadialGradient(w / 2, h * 0.35, 30, w / 2, h * 0.4, 300);
-    bg.addColorStop(0, '#5d6152');
-    bg.addColorStop(1, '#262822');
+    bg.addColorStop(0, o.bg[0]);
+    bg.addColorStop(1, o.bg[1]);
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
     // shoulders / suit
-    ctx.fillStyle = '#1f1e1c';
+    ctx.fillStyle = o.suit;
     ctx.beginPath();
     ctx.moveTo(20, h);
     ctx.lineTo(40, h * 0.72);
     ctx.quadraticCurveTo(w / 2, h * 0.58, w - 40, h * 0.72);
     ctx.lineTo(w - 20, h);
     ctx.fill();
+    if (o.collar === 'tie') {
     // shirt and tie
-    ctx.fillStyle = '#e8e0cc';
-    ctx.beginPath();
-    ctx.moveTo(w / 2 - 40, h * 0.66);
-    ctx.lineTo(w / 2 + 40, h * 0.66);
-    ctx.lineTo(w / 2, h * 0.86);
-    ctx.fill();
-    ctx.fillStyle = C.red;
-    ctx.beginPath();
-    ctx.moveTo(w / 2 - 12, h * 0.68);
-    ctx.lineTo(w / 2 + 12, h * 0.68);
-    ctx.lineTo(w / 2 + 16, h * 0.9);
-    ctx.lineTo(w / 2, h * 0.95);
-    ctx.lineTo(w / 2 - 16, h * 0.9);
-    ctx.fill();
+      ctx.fillStyle = '#e8e0cc';
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 40, h * 0.66);
+      ctx.lineTo(w / 2 + 40, h * 0.66);
+      ctx.lineTo(w / 2, h * 0.86);
+      ctx.fill();
+      ctx.fillStyle = C.red;
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 12, h * 0.68);
+      ctx.lineTo(w / 2 + 12, h * 0.68);
+      ctx.lineTo(w / 2 + 16, h * 0.9);
+      ctx.lineTo(w / 2, h * 0.95);
+      ctx.lineTo(w / 2 - 16, h * 0.9);
+      ctx.fill();
+    } else {
+      // buttoned to the throat
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(w / 2 - 3, h * 0.66, 6, h * 0.34);
+      ctx.fillStyle = '#c9b98a';
+      for (let i = 0; i < 4; i++) ctx.fillRect(w / 2 + 8, h * 0.7 + i * 34, 8, 8);
+    }
     // medals, many
     const medalCols = ['#d4a72c', '#c1272d', '#b9b4aa', '#d4a72c'];
-    for (let row = 0; row < 3; row++) {
+    for (let row = 0; row < o.medalRows; row++) {
       for (let i = 0; i < 4; i++) {
         ctx.fillStyle = medalCols[(i + row) % 4];
         ctx.fillRect(w * 0.6 + i * 20, h * 0.74 + row * 22, 16, 9);
@@ -390,7 +483,7 @@ export function portraitTexture() {
     ctx.ellipse(w / 2 + 40, h * 0.44, 40, 70, -0.2, 0, Math.PI * 2);
     ctx.fill();
     // hair, swept back and grey
-    ctx.fillStyle = '#8c8a84';
+    ctx.fillStyle = o.hair;
     ctx.beginPath();
     ctx.ellipse(w / 2, h * 0.23, 90, 52, 0, Math.PI, 0);
     ctx.fill();
@@ -417,14 +510,28 @@ export function portraitTexture() {
     ctx.lineTo(w / 2 - 18, h * 0.47);
     ctx.lineTo(w / 2 + 10, h * 0.47);
     ctx.fill();
-    // moustache
-    ctx.fillStyle = '#4a4540';
-    ctx.beginPath();
-    ctx.ellipse(w / 2, h * 0.5, 46, 14, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // mouth: a line
+    if (o.moustache) {
+      ctx.fillStyle = '#4a4540';
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h * 0.5, 46, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (o.glasses) {
+      ctx.strokeStyle = '#2a2622';
+      ctx.lineWidth = 5;
+      for (const sx of [-37, 37]) ctx.strokeRect(w / 2 + sx - 24, h * 0.35, 48, 30);
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 13, h * 0.37);
+      ctx.lineTo(w / 2 + 13, h * 0.37);
+      ctx.stroke();
+    }
     ctx.fillStyle = '#5a2e26';
-    ctx.fillRect(w / 2 - 22, h * 0.53, 44, 4);
+    if (o.mouth === 'smile') {
+      // a smile, approved
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h * 0.525, 26, 9, 0, 0, Math.PI);
+      ctx.fill();
+    } else ctx.fillRect(w / 2 - 22, h * 0.53, 44, 4);
     speckle(ctx, w, h, 0.15, r, 0.04);
     // varnish
     ctx.fillStyle = 'rgba(140,100,30,0.12)';

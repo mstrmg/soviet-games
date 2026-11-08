@@ -31,6 +31,8 @@ export class SceneManager {
     this.current = null;
     this.currentId = null;
     this.busy = false;
+    this.resolveHub = () => 'hub';
+    this.fallback = 'hub';
     this.timer = new THREE.Timer();
     this.elapsed = 0;
     this._raf = 0;
@@ -50,9 +52,11 @@ export class SceneManager {
 
   async switchTo(id, params = {}) {
     if (this.busy) return false;
+    // 'hub' means "the lobby this scene belongs to"; games say goTo('hub') and land in their own wing.
+    if (id === 'hub') id = this.resolveHub(this.currentId);
     if (!this.registry.has(id)) {
-      console.warn(`[scenes] unknown scene "${id}", returning to hub`);
-      id = 'hub';
+      console.warn(`[scenes] unknown scene "${id}", returning to the hall`);
+      id = this.fallback;
     }
     this.busy = true;
     try {

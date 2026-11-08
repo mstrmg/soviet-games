@@ -1,6 +1,8 @@
 # MINISTRY OF GAMES
 
-Three satirical browser games about central planning, behind three doors of one crumbling Ministry lobby.
+Satirical browser games about central planning. An International Hall of Fraternal Nations (a border
+checkpoint with a passport) leads to three wings: the Soviet Ministry of Games, China's Bureau of the
+Great Leap and East Germany's Ministry for Things Being Fine. Each wing has three games behind three doors.
 Vite + vanilla JS + Three.js. No external models, images or audio: everything is primitives, canvas and Web Audio.
 
 ## Run
@@ -11,24 +13,32 @@ npm run dev      # http://localhost:5173
 npm run build    # static site in dist/
 ```
 
-Deep links: `#hub`, `#nail-quota`, `#pravda-editor`, `#potemkin-village`.
+Deep links: `#hall`, the wings `#ussr`, `#china`, `#gdr`, and any game id (`#nail-quota`, `#sparrow-campaign`, ...).
+Games call `goTo('hub')` and land in their own wing. Games not yet built open a placeholder.
 
 ## Structure
 
 ```
 src/
   main.js                 entry: renderer, scene registry, hash routing
+  wings.js                DATA: the three wings, their games, and which wing a game belongs to
   style.css               overlay UI, memo, newspaper, grain
-  hub/                    the Ministry lobby
+  hall/                   the International Hall: checkpoint, three national doors, passport
+    text.js               DATA: every line the Hall and the passport say
+  wings/china/, wings/gdr/  departments.js (DATA) + index.js (the lobby, re-dressed)
+  wings/placeholders.js   stand-ins for games not built yet
+  hub/                    the Soviet Ministry lobby, reused by every wing (createWingLobby)
     index.js              scene: input, hover, door dolly, overlay
     lobby.js              builds the room, doors, portrait, clock, queue, leak
     citizens.js           low-poly queue
     textures.js           canvas-drawn posters, plaster, floor, signs
-    departments.js        DATA: door order, poster slogans, blurbs, medal names
+    departments.js        DATA: door order, poster slogans, blurbs, medal names, lobby dressing
+    features.js           the idle queue, the adjusted clock, the Heroes of Labour board
+    lobbyText.js          DATA: their words
   games/
-    nail-quota/           (placeholder until step 2)
-    pravda-editor/        (placeholder until step 4)
-    potemkin-village/     (placeholder until step 3)
+    nail-quota/           Soviet wing, game 1
+    pravda-editor/        Soviet wing, game 2
+    potemkin-village/     Soviet wing, game 3
   shared/
     sceneManager.js       one scene at a time; fade, dispose, load
     scope.js              tracks listeners/timers/resources for auto-cleanup

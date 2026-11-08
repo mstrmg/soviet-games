@@ -2,7 +2,7 @@
 // the clock that is adjusted when you fail, and the board that remembers both.
 import * as THREE from 'three';
 import { el, toast, memo } from '../shared/ui.js';
-import { DEPARTMENTS } from './departments.js';
+import { departmentById } from '../wings.js';
 import { QUEUE, CLOCK, BOARD } from './lobbyText.js';
 
 const HOUR = 3600 * 1000;
@@ -11,7 +11,7 @@ const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const lerp = THREE.MathUtils.lerp;
 const fmt = (n) => n.toLocaleString('en-GB');
 const freshPosition = () => QUEUE.startMin + Math.floor(Math.random() * (QUEUE.startMax - QUEUE.startMin));
-const medalOf = (gameId) => DEPARTMENTS.find((d) => d.id === gameId)?.medal;
+const medalOf = (gameId) => departmentById(gameId)?.medal;
 
 export function createLobbyFeatures(ctx, refs) {
   const { save, audio, layer, scope } = ctx;

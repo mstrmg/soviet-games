@@ -1,0 +1,51 @@
+/* ---------- International Hall: passport ---------- */
+.passport {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; width: min(860px, 96vw);
+  background: #e9e1cf; color: var(--ink); border-radius: 6px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 10px #5a1418, 0 0 0 12px #2a0a0c;
+  background-image: repeating-linear-gradient(45deg, rgba(120,140,120,0.07) 0 2px, transparent 2px 9px), radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 60%);
+  animation: memoIn 0.45s cubic-bezier(.2,.9,.3,1.2);
+}
+.pp-page { padding: 22px 24px 18px; min-height: 340px; }
+.pp-left { border-right: 2px dashed rgba(0,0,0,0.18); }
+.pp-head { display: flex; gap: 12px; align-items: center; border-bottom: 3px double var(--ink); padding-bottom: 10px; }
+.pp-crest { width: 44px; height: 44px; display: grid; place-items: center; background: var(--red); color: var(--gold); font-size: 24px; border-radius: 50%; }
+.pp-t1 { font: 30px/1 var(--display); letter-spacing: 0.08em; }
+.pp-t2 { font: 600 11px var(--body); letter-spacing: 0.16em; }
+.pp-id { display: grid; grid-template-columns: 150px 1fr; gap: 16px; margin-top: 14px; }
+.pp-photo-wrap canvas { width: 150px; height: 183px; display: block; border: 1px solid rgba(0,0,0,0.4); box-shadow: 2px 2px 0 rgba(0,0,0,0.15); }
+.pp-caption { font: 11px var(--type); margin-top: 4px; color: var(--red-dark); }
+.pp-fields { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-content: start; }
+.pp-fields dt { font: 600 10px var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: #6b665c; padding-top: 3px; }
+.pp-fields dd { margin: 0; font: 15px var(--type); }
+.pp-mrz { margin-top: 16px; font: 13px/1.2 "Courier New", monospace; letter-spacing: 0.12em; white-space: nowrap; overflow: hidden; opacity: 0.7; }
+.pp-visas-title { font: 26px var(--display); letter-spacing: 0.14em; color: #6b665c; border-bottom: 1px solid rgba(0,0,0,0.2); margin-bottom: 10px; }
+.pp-visas { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: center; justify-items: center; }
+.visa {
+  --c: var(--red); width: 150px; padding: 10px 6px 8px; border: 4px double var(--c); border-radius: 50% / 34%;
+  color: var(--c); text-align: center; transform: rotate(var(--tilt)); mix-blend-mode: multiply; opacity: 0.85;
+}
+.visa-a { font: 34px/0.9 var(--display); letter-spacing: 0.08em; }
+.visa-b { font: 600 11px var(--body); letter-spacing: 0.12em; border-top: 2px solid var(--c); margin-top: 4px; padding-top: 3px; }
+.visa.fresh { animation: visaIn 0.2s 0.9s ease-in both; }
+@keyframes visaIn { from { transform: rotate(var(--tilt)) scale(2.6); opacity: 0; } to { transform: rotate(var(--tilt)) scale(1); opacity: 0.85; } }
+.visa-empty { width: 150px; height: 74px; border: 2px dotted rgba(0,0,0,0.22); border-radius: 8px; display: grid; place-items: center; font: 11px var(--type); color: rgba(0,0,0,0.35); text-align: center; padding: 6px; }
+.pp-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; padding: 0 24px 18px; }
+
+.pp-badge {
+  position: absolute; right: 24px; bottom: 24px; display: flex; gap: 10px; align-items: center; cursor: pointer;
+  background: #5a1418; color: var(--gold); border: 0; padding: 8px 14px 8px 8px; border-radius: 4px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.5), inset 0 0 0 2px #2a0a0c; font: inherit; transition: transform 0.15s;
+}
+.pp-badge:hover, .pp-badge:focus-visible { transform: translateY(-3px) rotate(-1deg); outline: none; }
+.pp-badge canvas { width: 54px; height: 66px; border: 1px solid #2a0a0c; }
+.ppb-t { font: 26px/1 var(--display); letter-spacing: 0.1em; }
+.ppb-s { font: 600 11px var(--body); letter-spacing: 0.14em; color: var(--cream); margin-top: 4px; }
+
+@media (max-width: 720px) {
+  .passport { grid-template-columns: 1fr; }
+  .pp-left { border-right: 0; border-bottom: 2px dashed rgba(0,0,0,0.18); }
+}
+
+.hall-masthead .mh-title { font-size: 46px; }
+.scene-hall .pp-badge { bottom: 118px; }

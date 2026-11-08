@@ -69,14 +69,14 @@ export function makeMedal() {
   return g;
 }
 
-export function buildLobby(scene, departments, { medals = {} } = {}) {
+export function buildLobby(scene, departments, { medals = {}, theme = {} } = {}) {
   const { halfW, back, front, height } = ROOM;
   const depth = front - back;
   const refs = { doors: [], hitboxes: [] };
 
   const mats = {
-    plasterBack: new THREE.MeshStandardMaterial({ map: plasterTexture(7), roughness: 0.95 }),
-    plasterSide: new THREE.MeshStandardMaterial({ map: plasterTexture(11), roughness: 0.95 }),
+    plasterBack: new THREE.MeshStandardMaterial({ map: plasterTexture(7), roughness: 0.95, color: theme.wallTint ?? 0xffffff }),
+    plasterSide: new THREE.MeshStandardMaterial({ map: plasterTexture(11), roughness: 0.95, color: theme.wallTint ?? 0xffffff }),
     stone: flat(0xcfc6b2),
     stoneDark: flat(0x8f887a),
     brick: flat(0x9c6a4f),
@@ -193,7 +193,7 @@ export function buildLobby(scene, departments, { medals = {} } = {}) {
   }
 
   // ---- Banner ----------------------------------------------------------------
-  const banner = texturedPlane(17, 1.05, bannerTexture('LEISURE IS LABOUR  ★  LABOUR IS LEISURE  ★  FULFIL THE PLAN FOR FUN'));
+  const banner = texturedPlane(17, 1.05, bannerTexture(theme.banner || 'LEISURE IS LABOUR  ★  LABOUR IS LEISURE  ★  FULFIL THE PLAN FOR FUN'));
   banner.position.set(0, 8.95, back + 0.56);
   banner.rotation.z = -0.012; // one nail came loose
   scene.add(banner);
@@ -312,7 +312,7 @@ export function buildLobby(scene, departments, { medals = {} } = {}) {
 
   // ---- The Minister (left wall) -----------------------------------------------
   const portrait = new THREE.Group();
-  const face = texturedPlane(2.3, 2.9, portraitTexture(), { roughness: 0.6 });
+  const face = texturedPlane(2.3, 2.9, portraitTexture(theme.portrait), { roughness: 0.6 });
   face.position.z = 0.06;
   portrait.add(face);
   const fw = 2.3,
@@ -325,7 +325,7 @@ export function buildLobby(scene, departments, { medals = {} } = {}) {
   const nameplate = texturedPlane(
     2.2,
     0.42,
-    signTexture(['THE MINISTER OF GAMES', 'UNDEFEATED SINCE 1953'], { width: 640, height: 128, bg: CSS.ink, fg: CSS.gold }),
+    signTexture(theme.nameplate || ['THE MINISTER OF GAMES', 'UNDEFEATED SINCE 1953'], { width: 640, height: 128, bg: CSS.ink, fg: CSS.gold }),
   );
   nameplate.position.set(0, -fh / 2 - 0.6, 0.02);
   portrait.add(nameplate);

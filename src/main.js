@@ -4,17 +4,28 @@ import { createRenderer } from './shared/renderer.js';
 import { SceneManager } from './shared/sceneManager.js';
 import { audio } from './shared/audio.js';
 import { save } from './shared/save.js';
+import { ALL_DEPARTMENTS, wingOf } from './wings.js';
 
 const stage = document.getElementById('stage');
 const renderer = createRenderer(stage);
 const manager = new SceneManager({ renderer, container: stage, fadeEl: document.getElementById('fade') });
 
 // Each scene is loaded on demand, so a game's code only downloads when its door opens.
+// The Hall leads to three wings; each wing has three games. Games built so far are listed here;
+// the rest open a placeholder until they are.
 manager
-  .register('hub', () => import('./hub/index.js'))
+  .register('hall', () => import('./hall/index.js'))
+  .register('ussr', () => import('./hub/index.js'))
+  .register('china', () => import('./wings/china/index.js'))
+  .register('gdr', () => import('./wings/gdr/index.js'))
   .register('nail-quota', () => import('./games/nail-quota/index.js'))
   .register('pravda-editor', () => import('./games/pravda-editor/index.js'))
   .register('potemkin-village', () => import('./games/potemkin-village/index.js'));
+for (const d of ALL_DEPARTMENTS) {
+  if (!manager.has(d.id)) manager.register(d.id, () => import('./wings/placeholders.js').then((m) => ({ default: m.placeholderFor(d.id) })));
+}
+manager.resolveHub = (from) => wingOf(from)?.id || 'hall';
+manager.fallback = 'hall';
 
 // Any first gesture unlocks Web Audio.
 const unlock = () => audio.unlock();
@@ -25,12 +36,19 @@ save.update((d) => {
   d.visits = (d.visits || 0) + 1;
 });
 
-// Deep links: #nail-quota opens that department directly.
-const fromHash = () => location.hash.replace(/^#\/?/, '') || 'hub';
-window.addEventListener('hashchange', () => {
+// Deep links: #nail-quota opens that department directly; #hub (old links) means the Soviet wing.
+const fromHash = () => {
+  const id = location.hash.replace(/^#\/?/, '') || 'hall';
+  return id === 'hub' ? 'ussr' : id;
+};
+// A hash change during a scene transition waits for the transition to finish, rather than being lost.
+const followHash = () => {
   const id = fromHash();
-  if (id !== manager.currentId) manager.switchTo(id);
-});
+  if (id === manager.currentId) return;
+  if (manager.busy) setTimeout(followHash, 200);
+  else manager.switchTo(id);
+};
+window.addEventListener('hashchange', followHash);
 
 manager.start();
 manager.switchTo(fromHash());

@@ -11,6 +11,7 @@ const DEFAULTS = () => ({
   failures: [], // [{ gameId, at: ISO, label }] every failed run, newest last. The clock remembers.
   honours: [], // [{ gameId, kind: 'hero' | 'removed', at: ISO, label }] newest last, capped
   hub: { failuresSeen: 0, honoursSeenAt: null, queuePos: null, lastShuffleAt: null, citizenNo: null },
+  hall: { passportIssuedAt: null, visits: 0, stampsSeen: [] }, // the International Hall and your passport
 });
 
 const HONOURS_CAP = 40;
@@ -29,6 +30,7 @@ function read() {
       ...parsed,
       settings: { ...base.settings, ...(parsed.settings || {}) },
       hub: { ...base.hub, ...(parsed.hub || {}) },
+      hall: { ...base.hall, ...(parsed.hall || {}) },
       failures: Array.isArray(parsed.failures) ? parsed.failures : [],
       honours: Array.isArray(parsed.honours) ? parsed.honours : [],
     };
