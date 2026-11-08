@@ -55,7 +55,10 @@ export default function createPravdaEditor() {
       });
 
       buildHud();
+    },
 
+    async start() {
+      const { scope, layer, save } = s.ctx;
       const saved = save.game(GAME_ID);
       if (saved.inProgress && saved.day > 0) {
         const m = memo(layer, {

@@ -1,0 +1,42 @@
+/* POTEMKIN VILLAGE — overlay styles, prefixed pv- */
+.pv-panel {
+  position: absolute; top: 84px; right: 22px; width: 320px; background: var(--cream); color: var(--black);
+  border: 3px solid var(--black); box-shadow: 8px 8px 0 var(--black); display: none; flex-direction: column;
+}
+.pv-panel.show { display: flex; animation: nqPanelIn 0.4s cubic-bezier(.2,.9,.3,1.1); }
+@keyframes nqPanelIn { from { transform: translateX(380px); } }
+.pv-h { background: #1d2340; color: var(--cream); font: 30px var(--display); letter-spacing: 0.06em; padding: 8px 14px 4px; }
+.pv-res { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 2px solid var(--black); }
+.pv-r { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-right: 2px solid var(--black); }
+.pv-r:last-child { border-right: 0; }
+.pv-r-i { font-size: 18px; color: var(--red); }
+.pv-r-n { font: 40px/1 var(--display); }
+.pv-r-k { font: 600 10px var(--body); letter-spacing: 0.18em; }
+.pv-legend { padding: 10px 14px; font: 13px/1.5 var(--type); border-bottom: 2px solid var(--black); }
+.pv-dot { display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; transform: rotate(45deg); }
+.pv-dot.gold { background: var(--gold); }
+.pv-dot.red { background: var(--red); }
+.pv-dot.grey { background: #555a60; }
+.pv-preview { padding: 10px 14px; border-bottom: 2px solid var(--black); }
+.pv-pv { font: 14px var(--type); }
+.pv-pv b { font: 30px/1 var(--display); color: var(--red); margin-right: 4px; }
+.pv-pv.dim b { color: var(--grey-dark); }
+.pv-scrub { display: block; padding: 10px 14px; font: 600 11px var(--body); letter-spacing: 0.14em; }
+.pv-scrub input { width: 100%; accent-color: var(--red); margin-top: 6px; }
+.pv-panel .btn { margin: 4px 14px 14px; font-size: 22px; }
+.pv-tip { width: 260px; }
+
+.pv-drive { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); width: min(560px, 90vw); display: none; text-align: center; pointer-events: none; }
+.pv-drive.show { display: block; }
+.pv-imp-l { font: 600 12px var(--body); letter-spacing: 0.24em; color: var(--cream); text-shadow: 0 1px 3px #000; }
+.pv-imp-bar { height: 18px; border: 3px solid var(--black); background: rgba(242,232,213,0.6); margin-top: 6px; box-shadow: 4px 4px 0 var(--black); }
+.pv-imp-fill { height: 100%; width: 50%; background: var(--gold); transition: width 0.4s; }
+.pv-imp-fill.low { background: var(--red); }
+.pv-remark {
+  display: inline-block; margin-top: 14px; font: 26px var(--display); letter-spacing: 0.04em; background: var(--cream); color: var(--black);
+  border: 3px solid var(--black); padding: 6px 14px 2px; box-shadow: 4px 4px 0 var(--gold); opacity: 0;
+}
+.pv-remark.bad { box-shadow: 4px 4px 0 var(--red); }
+.pv-remark.pop { animation: remarkPop 1.6s forwards; }
+@keyframes remarkPop { 0% { opacity: 0; transform: translateY(10px) scale(0.9); } 12% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
+.memo-wrap.pv-side { background: transparent; place-items: center start; padding-left: 4vw; }

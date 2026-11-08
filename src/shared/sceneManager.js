@@ -5,7 +5,8 @@
 // A scene module's default export is a factory returning:
 //   {
 //     scene: THREE.Scene, camera: THREE.Camera,   // set during init
-//     init(ctx)        // may be async; build everything here
+//     init(ctx)        // may be async; build everything here (never wait on the player)
+//     start()          // optional; runs after the fade-in. Opening memos and other player waits go here
 //     update(dt, time) // called every frame
 //     dispose()        // release anything not covered by ctx.scope / the scene graph
 //     resize?(w, h)    // optional
@@ -80,6 +81,8 @@ export class SceneManager {
       if (location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
       this.render();
       await this.fade(0, 600);
+      // start() runs after the fade-in: anything that waits on the player belongs there, not in init().
+      if (instance.start && this.current?.instance === instance) Promise.resolve(instance.start()).catch((err) => console.error(err));
       return true;
     } catch (err) {
       console.error(`[scenes] failed to load "${id}"`, err);

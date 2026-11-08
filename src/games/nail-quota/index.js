@@ -74,6 +74,10 @@ export default function createNailQuota() {
         if (e.key === 'Escape' && s.phase === 'plan') ctx.goTo('hub');
       });
 
+    },
+
+    async start() {
+      const { scope, layer, save } = s.ctx;
       // Resume a plan in progress?
       const saved = save.game(GAME_ID);
       const inProgress = saved.levelIndex > 0 && saved.levelIndex < LEVELS.length && Array.isArray(saved.results);
