@@ -13,7 +13,10 @@ export const VIEW = {
 const ray = new THREE.Raycaster();
 const tmp = new THREE.Vector3();
 
-/** Sample the route every `step` metres: [{ pos, fwd }] */
+/**
+ * Sample the route every `step` metres: [{ pos, fwd, mode }]. A route point may carry a third
+ * element, 'walk', for the segment that starts there: the Inspector has got out of the car.
+ */
 export function sampleRoute(route, step = 1) {
   const out = [];
   for (let i = 0; i < route.length - 1; i++) {
@@ -21,18 +24,38 @@ export function sampleRoute(route, step = 1) {
     const b = new THREE.Vector3(route[i + 1][0], 0, route[i + 1][1]);
     const len = a.distanceTo(b);
     const fwd = b.clone().sub(a).normalize();
-    for (let d = 0; d < len; d += step) out.push({ pos: a.clone().addScaledVector(fwd, d), fwd });
+    const mode = route[i][2] || 'car';
+    for (let d = 0; d < len; d += step) out.push({ pos: a.clone().addScaledVector(fwd, d), fwd, mode });
   }
   return out;
 }
 
 /** Directions the Inspector looks, given the car's forward vector and which windows he uses. */
+// 'right' / 'left' are the car windows. When the car stops he turns his head ('front-right',
+// 'back-right', ...); on foot he looks everywhere ('around').
 export function lookDirs(fwd, windows) {
   const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
-  const dirs = [];
-  if (windows.includes('right')) dirs.push(right);
-  if (windows.includes('left')) dirs.push(right.clone().negate());
-  return dirs;
+  const left = right.clone().negate();
+  const mix = (a, b) => a.clone().add(b).normalize();
+  const back = fwd.clone().negate();
+  const named = {
+    right,
+    left,
+    'front-right': mix(right, fwd),
+    'back-right': mix(right, back),
+    'front-left': mix(left, fwd),
+    'back-left': mix(left, back),
+    front: fwd.clone(),
+  };
+  if (windows.includes('around')) return [right, left, named['front-right'], named['back-right'], named['front-left'], named['back-left'], named.front, back];
+  return windows.filter((w) => named[w]).map((w) => named[w]);
+}
+
+/** He turns his head when the car stops: the windows plus the diagonals on those sides. */
+export function stoppedWindows(windows) {
+  const out = new Set(windows);
+  for (const w of windows) if (w === 'right' || w === 'left') out.add(`front-${w}`).add(`back-${w}`);
+  return [...out];
 }
 
 export function eyeAt(pos, dir) {

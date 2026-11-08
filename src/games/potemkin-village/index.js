@@ -7,7 +7,7 @@ import { el, button, memo, toast } from '../../shared/ui.js';
 import { showNewspaper } from '../../shared/newspaper.js';
 import { LEVELS, OPTIONS, REMARKS, NEWSPAPER } from './levels.js';
 import { makeMaterials, buildGround, buildThing, setFixed, buildProp, buildCar, buildTruck } from './village.js';
-import { sampleRoute, visibleItems, viewFan, VIEW } from './visibility.js';
+import { sampleRoute, visibleItems, viewFan, VIEW, stoppedWindows } from './visibility.js';
 
 const GAME_ID = 'potemkin-village';
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -16,6 +16,9 @@ const NIGHT = { bg: 0x0b1020, hemi: [0x5a6aa0, 0x1a1a24, 1.0], sun: [0x9fb6e8, 1
 const DAY = { bg: 0xaebfc6, hemi: [0xf2e8d5, 0x4a4030, 0.7], sun: [0xfff0d8, 2.6], pos: [-30, 22, -18] };
 
 /** Good things seen vs. bad things seen, each weighted by how much of it he saw and for how long. */
+const BACK_WEIGHT = 4;
+const BACK_LABEL = 'the back of a house, which was plywood';
+
 function impressionOf(G, B) {
   if (G + B < 0.001) return 50;
   return Math.round((100 * G) / (G + B));
@@ -25,6 +28,9 @@ export default function createPotemkin() {
   const s = {
     ctx: null,
     level: LEVELS[0],
+    index: 0,
+    rain: null,
+    walker: null,
     m: null,
     items: [],
     things: new Map(),
@@ -54,7 +60,12 @@ export default function createPotemkin() {
 
     async init(ctx) {
       s.ctx = ctx;
-      const { scope, layer, renderer } = ctx;
+      const { scope, layer, renderer, save } = ctx;
+      // which village: asked for, or the next one on the list
+      const asked = ctx.params?.village;
+      s.index = Math.max(0, Math.min(LEVELS.length - 1, asked ?? (save.game(GAME_ID).next || 0)));
+      s.level = LEVELS[s.index];
+      s.resumed = asked == null && s.index > 0;
       await fontsReady();
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(NIGHT.bg);
@@ -126,10 +137,24 @@ export default function createPotemkin() {
         new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false }),
       );
       scene.add(s.fan);
-      // route line
-      const line = new THREE.Mesh(new THREE.PlaneGeometry(92, 0.15), new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.5 }));
-      line.rotation.x = -Math.PI / 2;
-      line.position.y = 0.05;
+      // route line: the road he drives, and (dashed) any part he walks
+      const line = new THREE.Group();
+      const R = s.level.route;
+      for (let k = 0; k < R.length - 1; k++) {
+        const [ax, az, mode] = R[k];
+        const [bx, bz] = R[k + 1];
+        const len = Math.hypot(bx - ax, bz - az);
+        const seg = new THREE.Mesh(new THREE.PlaneGeometry(len, mode === 'walk' ? 0.3 : 0.15), new THREE.MeshBasicMaterial({ color: mode === 'walk' ? 0xff8a5a : 0xffe08a, transparent: true, opacity: 0.6 }));
+        seg.rotation.x = -Math.PI / 2;
+        seg.rotation.z = Math.atan2(-(bz - az), bx - ax);
+        seg.position.set((ax + bx) / 2, 0.05, (az + bz) / 2);
+        line.add(seg);
+      }
+      for (const st of s.level.stops || []) {
+        const mk = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.08, 16), new THREE.MeshBasicMaterial({ color: 0xff8a5a, transparent: true, opacity: 0.7 }));
+        mk.position.set(st.x, 0.06, 0);
+        line.add(mk);
+      }
       scene.add(line);
       s.routeLine = line;
 
@@ -164,6 +189,22 @@ export default function createPotemkin() {
     async start() {
       const { scope, layer } = s.ctx;
       s.phase = 'memo';
+      if (s.resumed) {
+        const r = memo(layer, {
+          no: 'PV-0/00',
+          to: 'Chairman, Collective Farm "Bright Path"',
+          from: 'District Committee',
+          subject: 'Your itinerary',
+          body: [`The plywood has been delivered to the next village on the list: ${s.level.name} (${s.index + 1} of ${LEVELS.length}).`, 'You may follow it there, or begin the tour again from the first village, which has been restored to its natural condition.'],
+          buttons: [
+            { label: 'BACK TO THE FIRST VILLAGE', value: 'first' },
+            { label: `ON TO ${s.level.name}`, value: 'go', variant: 'red' },
+          ],
+        });
+        const choice = await r.done;
+        if (scope.disposed) return;
+        if (choice === 'first') return s.ctx.goTo(GAME_ID, { village: 0 });
+      }
       const m = memo(layer, {
         no: s.level.memo.no,
         to: 'Chairman, Collective Farm "Bright Path"',
@@ -239,8 +280,15 @@ export default function createPotemkin() {
     return item.kind === 'thing' && !item.fixed;
   }
 
+  /** A facade seen from behind is the truth, held up by struts: it counts against you. */
+  function backSeen(item, eye) {
+    if (item.kind !== 'prop' || item.slot.kind !== 'facade') return false;
+    const a = item.group.rotation.y;
+    return (item.group.position.x - eye.x) * -Math.sin(a) + (item.group.position.z - eye.z) * -Math.cos(a) > 0;
+  }
+
   function goodWeight(item) {
-    if (item.kind === 'prop') return OPTIONS[item.slot.kind].good;
+    if (item.kind === 'prop') return OPTIONS[item.slot.kind].good * (item.soggy ? 0.3 : 1);
     if (item.fixed) return OPTIONS[item.fixKind].good;
     return 0;
   }
@@ -310,8 +358,8 @@ export default function createPotemkin() {
     self.scene.updateMatrixWorld(true);
     const occ = occluders();
     const seen = new Set();
-    for (const sample of sampleRoute(s.level.route, 2)) {
-      for (const [it, frac] of visibleItems(sample.pos, sample.fwd, s.level.windows, s.items, occ)) if (frac >= VIEW.notice) seen.add(it);
+    for (const sample of viewSamples(2)) {
+      for (const [it, frac] of visibleItems(sample.pos, sample.fwd, sample.windows, s.items, occ)) if (frac >= VIEW.notice) seen.add(it);
     }
     let badSeen = 0;
     let badHidden = 0;
@@ -335,13 +383,24 @@ export default function createPotemkin() {
     updateGhost();
   }
 
+  /** Every place he will look from, and how: the drive, the stops (head turned) and the walk. */
+  function viewSamples(step) {
+    const L = s.level;
+    const out = sampleRoute(L.route, step).map((p) => ({ ...p, windows: p.mode === 'walk' ? ['around'] : L.windows }));
+    for (const st of L.stops || []) {
+      const near = sampleRoute(L.route, 1).find((p) => p.mode === 'car' && Math.abs(p.pos.x - st.x) < 0.6 && Math.abs(p.pos.z) < 0.6);
+      if (near) for (let k = 0; k < 3; k++) out.push({ ...near, windows: stoppedWindows(L.windows) });
+    }
+    return out;
+  }
+
   function updateGhost() {
     const route = s.route;
     const i = Math.min(route.length - 1, Math.floor(s.scrub * (route.length - 1)));
     const { pos, fwd } = route[i];
     s.ghost.position.copy(pos);
     s.ghost.rotation.y = -Math.atan2(fwd.z, fwd.x);
-    const verts = viewFan(pos, fwd, s.level.windows, occluders());
+    const verts = viewFan(pos, fwd, route[i].mode === 'walk' ? ['around'] : s.level.windows, occluders());
     s.fan.geometry.dispose();
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
@@ -376,7 +435,7 @@ export default function createPotemkin() {
     s.ui.remark = el('div.pv-remark');
     s.ui.drive = el('div.pv-drive', {}, [el('div.pv-imp-l', {}, "INSPECTOR'S IMPRESSION"), el('div.pv-imp-bar', {}, s.ui.impression), s.ui.remark]);
     layer.append(
-      el('div.dept-banner', {}, [el('div.dept-kicker', {}, 'Directorate of Rural Appearances'), el('div.dept-title', {}, `VILLAGE OF ${s.level.name}`)]),
+      el('div.dept-banner', {}, [el('div.dept-kicker', {}, `Directorate of Rural Appearances · Village ${s.index + 1} of ${LEVELS.length}`), el('div.dept-title', {}, `VILLAGE OF ${s.level.name}`)]),
       el('div.corner-actions', {}, [button('← RETURN TO LOBBY', () => s.ctx.goTo('hub'), { variant: 'dark' })]),
       s.ui.build,
       s.ui.drive,
@@ -428,30 +487,140 @@ export default function createPotemkin() {
     audio.ding();
     s.car = buildCar(s.m);
     self.scene.add(s.car);
-    s.drive = { d: 0, G: 0, B: 0, seenOnce: new Set(), noted: [], praised: [], remarkT: 0 };
+    s.drive = { d: 0, G: 0, B: 0, seenOnce: new Set(), noted: [], praised: [], remarkT: 0, stopsDone: new Set(), stopT: 0, rained: false };
+    if (s.level.walk) {
+      s.walker = buildWalker();
+      s.walker.visible = false;
+      self.scene.add(s.walker);
+    }
+  }
+
+  /** The Inspector on foot: grey coat, hat, notebook. */
+  function buildWalker() {
+    const g = new THREE.Group();
+    const coat = new THREE.MeshStandardMaterial({ color: 0x5a5f66, roughness: 0.9 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.36, 1.3, 8), coat);
+    body.position.y = 0.95;
+    const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.17, 0), new THREE.MeshStandardMaterial({ color: 0xd8b49a, roughness: 0.8 }));
+    head.position.y = 1.78;
+    const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.06, 12), new THREE.MeshStandardMaterial({ color: 0x2a2a2a }));
+    hat.position.y = 1.92;
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.16, 12), hat.material);
+    crown.position.y = 2.0;
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.28, 0.04), new THREE.MeshStandardMaterial({ color: 0xf2e8d5 }));
+    pad.position.set(0.3, 1.2, 0.18);
+    g.add(body, head, hat, crown, pad);
+    g.traverse((o) => o.isMesh && (o.castShadow = true));
+    return g;
+  }
+
+  // ---- rain: the paint is water-based ------------------------------------------------------
+  function startRain() {
+    const n = 900;
+    const pos = new Float32Array(n * 6);
+    for (let i = 0; i < n; i++) {
+      const x = -50 + Math.random() * 100;
+      const y = Math.random() * 18;
+      const z = -20 + Math.random() * 40;
+      pos.set([x, y, z, x - 0.1, y - 0.7, z], i * 6);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    s.rain = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0xaab6c4, transparent: true, opacity: 0.55 }));
+    self.scene.add(s.rain);
+    s.ctx.audio.loop('rain', 'room', 0.06);
+    // painted things revert; banners go soggy
+    let washed = 0;
+    for (const t of s.things.values()) {
+      if (t.fixed && t.fixKind === 'paint') {
+        setFixed(t, false, s.m);
+        washed++;
+      }
+    }
+    for (const p of s.props.values()) if (p.slot.kind === 'banner') p.soggy = true;
+    toast(s.ctx.layer, washed ? s.level.rain.text : s.level.rain.textDry, 4200);
+  }
+
+  function tickRain(dt) {
+    if (!s.rain) return;
+    const a = s.rain.geometry.attributes.position;
+    for (let i = 0; i < a.count; i += 2) {
+      let y = a.getY(i) - dt * 22;
+      if (y < 0) y += 18;
+      a.setY(i, y);
+      a.setY(i + 1, y - 0.7);
+    }
+    a.needsUpdate = true;
   }
 
   function tickDrive(dt) {
     const dr = s.drive;
     const route = s.route;
-    dr.d += dt * s.level.speed;
+    const L = s.level;
+    const cur = route[Math.min(route.length - 1, Math.floor(dr.d))];
+    const walking = cur.mode === 'walk';
+    // an unscheduled stop: he turns his head
+    let stopped = false;
+    if (dr.stopT > 0) {
+      dr.stopT -= dt;
+      stopped = true;
+    } else if (!walking) {
+      for (const st of L.stops || []) {
+        if (!dr.stopsDone.has(st) && cur.pos.x >= st.x) {
+          dr.stopsDone.add(st);
+          dr.stopT = st.secs;
+          stopped = true;
+          remark(st.text, false);
+          s.ctx.audio.creak?.();
+        }
+      }
+    }
+    if (!stopped) dr.d += dt * (walking ? L.walk?.speed || 2 : L.speed);
+    if (L.rain && !dr.rained && dr.d / route.length >= L.rain.at) {
+      dr.rained = true;
+      startRain();
+    }
+    tickRain(dt);
     const i = Math.min(route.length - 1, Math.floor(dr.d));
-    const { pos, fwd } = route[i];
-    s.car.position.lerp(pos, Math.min(1, dt * 10));
-    s.car.rotation.y = -Math.atan2(fwd.z, fwd.x);
+    const { pos, fwd, mode } = route[i];
+    const onFoot = mode === 'walk';
+    let eye;
+    if (onFoot) {
+      if (!s.walker.visible) {
+        s.walker.visible = true;
+        s.walker.position.copy(pos);
+        remark(L.walk.text, false);
+      }
+      s.walker.position.lerp(pos, Math.min(1, dt * 8));
+      s.walker.rotation.y = -Math.atan2(fwd.z, fwd.x) + Math.PI / 2;
+      s.walker.position.y = Math.abs(Math.sin(dr.d * 3)) * 0.06;
+      eye = s.walker.position;
+    } else {
+      if (s.walker?.visible) {
+        s.walker.visible = false;
+        remark(L.walk.back, false);
+      }
+      s.car.position.lerp(pos, Math.min(1, dt * 10));
+      s.car.rotation.y = -Math.atan2(fwd.z, fwd.x);
+      eye = s.car.position;
+    }
     const cam = self.camera;
-    const camPos = s.car.position.clone().add(new THREE.Vector3(-10, 6, -9));
+    const camPos = eye.clone().add(onFoot ? new THREE.Vector3(-7, 7, -8) : new THREE.Vector3(-10, 6, -9));
     cam.position.lerp(camPos, Math.min(1, dt * 3));
-    cam.lookAt(s.car.position.clone().add(new THREE.Vector3(5, 1.5, 6)));
+    cam.lookAt(eye.clone().add(new THREE.Vector3(5, 1.5, onFoot ? 3 : 6)));
 
-    const seen = visibleItems(s.car.position, fwd, s.level.windows, s.items, occluders());
+    const windows = onFoot ? ['around'] : stopped ? stoppedWindows(L.windows) : L.windows;
+    const seen = visibleItems(eye, onFoot ? fwd : route[i].fwd, windows, s.items, occluders());
     for (const [it, frac] of seen) {
-      if (isBad(it)) dr.B += it.weight * frac * dt;
+      const back = backSeen(it, eye);
+      if (back) dr.B += BACK_WEIGHT * frac * dt;
+      else if (isBad(it)) dr.B += it.weight * frac * dt;
       else dr.G += goodWeight(it) * frac * dt;
-      if (frac >= VIEW.notice && !dr.seenOnce.has(it)) {
-        dr.seenOnce.add(it);
-        const bad = isBad(it);
-        (bad ? dr.noted : dr.praised).push(bad || it.kind === 'prop' ? it.label : it.def.praise || OPTIONS[it.fixKind].praise);
+      const key = back ? `${it.slot.id}:back` : it;
+      if (frac >= VIEW.notice && !dr.seenOnce.has(key)) {
+        dr.seenOnce.add(key);
+        const bad = back || isBad(it);
+        (bad ? dr.noted : dr.praised).push(back ? BACK_LABEL : bad || it.kind === 'prop' ? it.label : it.def.praise || OPTIONS[it.fixKind].praise);
         if (dr.remarkT <= 0) {
           remark(pick(bad ? REMARKS.bad : REMARKS.good), bad);
           dr.remarkT = 1.4;
@@ -501,12 +670,17 @@ export default function createPotemkin() {
 
   async function report() {
     const { layer, audio, scope } = s.ctx;
+    if (s.rain) {
+      self.scene.remove(s.rain);
+      s.rain = null;
+      audio.stopLoop('rain');
+    }
     const imp = impression();
     const stamp = imp >= 80 ? 'EXEMPLARY VILLAGE' : imp >= 50 ? 'SATISFACTORY' : 'SUBJECT TO REVIEW';
     audio.ding();
     const dr = s.drive;
     const m = memo(layer, {
-      no: 'PV-1/01-R',
+      no: `${s.level.memo.no}-R`,
       to: 'Chairman, Collective Farm "Bright Path"',
       from: 'Office of the Deputy Inspector',
       subject: `Inspection of ${s.level.name}`,
@@ -577,7 +751,8 @@ export default function createPotemkin() {
     const runLabel = `${vars.name}: ${imp}%`;
     if (imp >= 50) save.recordSuccess(GAME_ID, runLabel);
     else save.recordFailure(GAME_ID, runLabel);
-    save.setGame(GAME_ID, { best: Math.max(imp, save.game(GAME_ID).best || 0) });
+    const more = s.index + 1 < LEVELS.length;
+    save.setGame(GAME_ID, { best: Math.max(imp, save.game(GAME_ID).best || 0), next: more ? s.index + 1 : 0 });
     audio.fanfare();
     // photograph the village as it is now: the plywood is fourteen kilometres away
     s.phase = 'paper';
@@ -591,10 +766,12 @@ export default function createPotemkin() {
       caption: 'The village, photographed shortly after the inspection.',
       columns: np0.columns.map((c) => fill(c, vars)),
       sidebar: { title: 'THE VILLAGE IN FIGURES', items: [`Inspector's impression: ${imp}%`, `Actual condition: ${condition}%`, `Plywood returned to stores: all of it`] },
-      closeLabel: 'RETURN TO THE MINISTRY',
+      closeLabel: more ? `ON TO ${LEVELS[s.index + 1].name}` : 'RETURN TO THE MINISTRY',
     });
     await np.done;
-    if (!scope.disposed) s.ctx.goTo('hub');
+    if (scope.disposed) return;
+    if (more) s.ctx.goTo(GAME_ID, { village: s.index + 1 });
+    else s.ctx.goTo('hub');
   }
 
   // Dev only: score the current build without driving, for balancing levels.
@@ -608,8 +785,9 @@ export default function createPotemkin() {
         let G = 0;
         let B = 0;
         const bad = new Set();
-        for (const { pos, fwd } of sampleRoute(s.level.route, 1)) {
-          for (const [it, frac] of visibleItems(pos, fwd, s.level.windows, s.items, occ)) {
+        for (const { pos, fwd, windows } of viewSamples(1)) {
+          for (const [it, frac] of visibleItems(pos, fwd, windows, s.items, occ)) {
+            if (backSeen(it, pos)) { B += BACK_WEIGHT * frac; bad.add(`${it.slot.id}:back`); continue; }
             if (isBad(it)) { B += it.weight * frac; if (frac >= VIEW.notice) bad.add(it.def.id); } else G += goodWeight(it) * frac;
           }
         }

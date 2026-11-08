@@ -469,6 +469,8 @@ export function buildProp(slot, m, seed = 1) {
     samples = [V(-1.3, 1.4, 0), V(0, 1.4, 0.4), V(1.3, 1.4, 0)];
   }
   g.position.set(slot.pos[0], 0, slot.pos[1]);
+  // props face the road: those on the left-hand side are turned round
+  g.rotation.y = slot.rot ?? (slot.pos[1] < 0 ? Math.PI : 0);
   return { group: g, occ, samples, wavers };
 }
 

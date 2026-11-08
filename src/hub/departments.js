@@ -35,7 +35,7 @@ export const DEPARTMENTS = [
     title: 'POTEMKIN VILLAGE',
     dept: 'Directorate of Rural Appearances',
     blurb: 'The Inspector arrives tomorrow. He will see the village from his car. Only from his car.',
-    status: 'OPEN · ONE VILLAGE',
+    status: 'OPEN · FIVE VILLAGES',
     medal: 'Order of the Painted Fence',
     poster: {
       motif: 'village',
