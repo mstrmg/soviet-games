@@ -563,7 +563,7 @@ export default function createPravdaEditor() {
       headline: story ? headlineText(s.tiles) || story.slug : 'NO HEADLINE TODAY',
       deck: leadStory ? leadStory.slug : 'All is well',
       columns: [leadStory?.print, foldStory ? `${foldStory.slug}. ${foldStory.print}` : null].filter(Boolean),
-      sidebar: { title: 'ALSO IN THIS ISSUE', items: inSlot('page6').map((id) => `p. 6 — ${wire(id).slug}`).concat(['p. 4 — Letters of gratitude'], s.crossword && act().crossword ? ['p. 6 — Crossword (14 across: seven letters)'] : []) },
+      sidebar: { title: 'ALSO IN THIS ISSUE', items: inSlot('page6').map((id) => `p. 6 — ${wire(id).slug}`).concat(['p. 4 — Letters of gratitude'], s.crossword && act().crossword ? [`p. 6 — Crossword (14 across: ${CROSSWORD_WORD(wire(s.crossword)).replace(/ /g, '').length} letters)`] : []) },
     };
     if (!page.columns.length) page.columns = ['The editors are pleased to report that there is nothing further to report.'];
     s.pages.push(page);
