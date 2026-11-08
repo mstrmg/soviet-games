@@ -26,7 +26,7 @@ export const DEPARTMENTS = [
     title: 'THE PRESS CONFERENCE',
     dept: 'Office of Official Statements',
     blurb: 'You have been handed a note. You have not read the note. The cameras are on.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · ONE EVENING',
     medal: 'Medal for Immediate Effect (posthumous)',
     poster: { motif: 'microphone', slogan: 'NO COMMENT!', sub: 'EFFECTIVE IMMEDIATELY' },
   },

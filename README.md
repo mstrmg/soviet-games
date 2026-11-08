@@ -42,6 +42,7 @@ src/
     backyard-furnace/     China wing, game 1 (levels.js holds the weeks, items and words)
     launch-a-satellite/   China wing, game 2 (levels.js holds the seasons, rivals and words)
     sparrow-campaign/     China wing, game 3 (levels.js holds the days, quotas and words)
+    press-conference/     GDR wing, game 3 (script.js holds the questions, phrases and endings)
   shared/
     sceneManager.js       one scene at a time; fade, dispose, load
     scope.js              tracks listeners/timers/resources for auto-cleanup
