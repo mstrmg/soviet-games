@@ -126,6 +126,7 @@ export default function createListeningPost() {
     s.phase = 'listening';
     s.step = -1;
     s.lines = [];
+    s.clock = '07:00';
     s.ui.log.replaceChildren(el('div.lp-empty', {}, TEXT.nothing));
     nextAction();
     renderHud();
@@ -362,7 +363,7 @@ export default function createListeningPost() {
     s.phase = 'review';
     renderHud();
     if (imp >= exp) {
-      const added = Math.min(RULES.micsMax - s.mics, 2 + (imp - exp));
+      const added = Math.min(RULES.micsMax - s.mics, 2 + Math.floor((imp - exp) / 3));
       const m = memo(layer, { no: TEXT.review.no(s.day), to: 'Comrade Listener', from: TEXT.dept, subject: TEXT.review.subject(s.day), body: TEXT.review.good(imp, exp, added), stamp: 'APPROVED', buttons: [{ label: TEXT.review.button, value: true }] });
       await m.done;
       if (scope.disposed) return;
