@@ -126,6 +126,33 @@ export const audio = {
     tone(900, 0.02, { type: 'square', gain: 0.03 });
   },
 
+  /** An old rifle: a crack, a thump, a tail. */
+  shot() {
+    noise(0.25, { type: 'lowpass', freq: 1800, gain: 0.9 });
+    noise(0.05, { type: 'highpass', freq: 2500, gain: 0.4 });
+    tone(70, 0.25, { type: 'sine', gain: 0.6, slideTo: 35 });
+  },
+
+  /** Working the bolt. */
+  bolt() {
+    noise(0.03, { type: 'bandpass', freq: 2600, q: 5, gain: 0.35 });
+    noise(0.04, { type: 'bandpass', freq: 1700, q: 5, gain: 0.3, when: 0.18 });
+  },
+
+  /** A small bird, briefly. */
+  chirp() {
+    const f = 3200 + Math.random() * 1400;
+    tone(f, 0.06, { type: 'sine', gain: 0.05, slideTo: f * 1.3 });
+    tone(f * 1.1, 0.05, { type: 'sine', gain: 0.04, when: 0.08, slideTo: f * 0.9 });
+  },
+
+  /** A pot, struck with a spoon, patriotically. */
+  pot() {
+    const f = 600 + Math.random() * 500;
+    tone(f, 0.35, { type: 'triangle', gain: 0.05 });
+    tone(f * 2.76, 0.2, { type: 'sine', gain: 0.025 });
+  },
+
   /** Water drip into a bucket. */
   drip() {
     tone(1300 + Math.random() * 300, 0.12, { type: 'sine', gain: 0.07, slideTo: 600 });
@@ -172,7 +199,7 @@ export const audio = {
 
   /**
    * Start a named looping drone (factory hum, room tone). Returns a stop function.
-   * Kinds: 'hum' (factory), 'room' (lobby tone).
+   * Kinds: 'hum' (factory), 'room' (lobby tone), 'swarm' (insects, many).
    */
   loop(name, kind = 'hum', level = 0.06) {
     const c = ensure();
@@ -183,12 +210,12 @@ export const audio = {
     const nodes = [];
     const lp = c.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = kind === 'hum' ? 420 : 260;
+    lp.frequency.value = kind === 'hum' ? 420 : kind === 'swarm' ? 2200 : 260;
     lp.connect(g).connect(master);
-    const freqs = kind === 'hum' ? [50, 100, 150.5] : [55, 110.3];
+    const freqs = kind === 'hum' ? [50, 100, 150.5] : kind === 'swarm' ? [190, 241.5, 297, 352.7] : [55, 110.3];
     for (const f of freqs) {
       const o = c.createOscillator();
-      o.type = kind === 'hum' ? 'sawtooth' : 'sine';
+      o.type = kind === 'hum' ? 'sawtooth' : kind === 'swarm' ? 'square' : 'sine';
       o.frequency.value = f;
       const og = c.createGain();
       og.gain.value = 1 / freqs.length;
@@ -200,7 +227,7 @@ export const audio = {
     src.buffer = noiseBuffer;
     src.loop = true;
     const ng = c.createGain();
-    ng.gain.value = kind === 'hum' ? 0.25 : 0.4;
+    ng.gain.value = kind === 'hum' ? 0.25 : kind === 'swarm' ? 0.6 : 0.4;
     src.connect(ng).connect(lp);
     src.start();
     nodes.push(src);

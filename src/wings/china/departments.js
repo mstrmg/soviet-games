@@ -26,7 +26,7 @@ export const DEPARTMENTS = [
     title: 'SPARROW CAMPAIGN',
     dept: 'Bureau of Pest Elimination',
     blurb: 'The sparrows eat the grain. The commune has a rifle. The quota has been announced.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · TWO DAYS',
     medal: 'Order of the Empty Sky',
     poster: { motif: 'sparrow', slogan: 'CLEAR SKIES!', sub: 'BY ORDER OF THE COMMUNE' },
   },

@@ -1,0 +1,46 @@
+/* ---------- Sparrow Campaign ---------- */
+.sc-board {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.4), 6px 6px 0 var(--red);
+}
+.sc-cell { background: var(--ink); padding: 8px 18px 6px; text-align: center; min-width: 120px; }
+.sc-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: var(--grey-light, #b9b4aa); text-transform: uppercase; }
+.sc-num { font: 44px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.sc-time { color: var(--gold); }
+.sc-board.met .sc-cell:first-child .sc-num { color: var(--gold); }
+.sc-board.locusts .sc-num { font-size: 30px; line-height: 44px; color: var(--grey-light, #b9b4aa); }
+.sc-num.bump { animation: scBump 0.25s; }
+@keyframes scBump { 50% { transform: scale(1.25); color: var(--gold); } }
+
+.sc-announce {
+  position: absolute; top: 112px; left: 50%; transform: translateX(-50%); max-width: min(760px, 90vw);
+  background: var(--red); color: var(--cream); font: 22px/1.2 var(--display); letter-spacing: 0.06em; text-align: center;
+  padding: 8px 18px; opacity: 0; pointer-events: none; box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.sc-announce.show { animation: scAnnounce 5.5s forwards; }
+@keyframes scAnnounce { 0% { opacity: 0; transform: translate(-50%, -8px); } 6%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+.sc-harvest { position: absolute; left: 24px; bottom: 24px; width: 300px; background: rgba(22,21,20,0.85); padding: 10px 12px; }
+.sc-harvest span { color: var(--cream); }
+.sc-hbar { height: 12px; background: #3a3632; margin-top: 6px; }
+.sc-hfill { height: 100%; background: #c9a94a; transition: width 0.3s linear; }
+.sc-hfill.low { background: var(--red); }
+
+.sc-ammo { position: absolute; right: 24px; bottom: 24px; text-align: right; }
+.sc-rounds { display: flex; gap: 6px; justify-content: flex-end; }
+.sc-round { width: 10px; height: 34px; border-radius: 5px 5px 1px 1px; background: linear-gradient(#e2c06a 0 30%, #b08d3c 30%); box-shadow: 0 2px 0 #000; }
+.sc-round.spent { background: #3a3632; opacity: 0.6; }
+.sc-reload { margin-top: 8px; font: 600 12px var(--body); letter-spacing: 0.18em; color: var(--cream); opacity: 0.6; text-shadow: 0 1px 2px #000; }
+.sc-reload.active { opacity: 1; color: var(--gold); }
+
+.sc-cross {
+  position: fixed; left: -18px; top: -18px; width: 36px; height: 36px; pointer-events: none; z-index: 5;
+  border: 2px solid rgba(242,232,213,0.9); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+}
+.sc-cross::before, .sc-cross::after { content: ''; position: absolute; background: rgba(242,232,213,0.9); }
+.sc-cross::before { left: 50%; top: -8px; bottom: -8px; width: 2px; margin-left: -1px; }
+.sc-cross::after { top: 50%; left: -8px; right: -8px; height: 2px; margin-top: -1px; }
+.layer.leaving .sc-cross, .layer:has(.memo-wrap) .sc-cross, .layer:has(.np-wrap) .sc-cross { display: none; }
+
+/* the harvest figure, set in very small type */
+.sc-paper .np-sidebar li:last-child { font-size: 9px; opacity: 0.8; }
