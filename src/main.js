@@ -24,6 +24,7 @@ manager
   .register('pravda-editor', () => import('./games/pravda-editor/index.js'))
   .register('potemkin-village', () => import('./games/potemkin-village/index.js'))
   .register('sparrow-campaign', () => import('./games/sparrow-campaign/index.js'))
+  .register('hole-in-eleven', () => import('./games/hole-in-eleven/index.js'))
   .register('backyard-furnace', () => import('./games/backyard-furnace/index.js'))
   .register('launch-a-satellite', () => import('./games/launch-a-satellite/index.js'))
   .register('press-conference', () => import('./games/press-conference/index.js'))

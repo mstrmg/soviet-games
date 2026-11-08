@@ -1,0 +1,44 @@
+/* ---------- Hole in Eleven ---------- */
+.hi-hud { position: absolute; inset: 0; pointer-events: none; }
+.hi-hud button { pointer-events: auto; }
+.hi-board {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.35), 6px 6px 0 #024fa2;
+}
+.hi-cell { background: var(--ink); padding: 8px 20px 7px; text-align: center; min-width: 128px; }
+.hi-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: #b9b4aa; text-transform: uppercase; }
+.hi-num { font: 44px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.hi-num.met { color: var(--gold); }
+.hi-info { font: 600 11px var(--body); letter-spacing: 0.12em; color: #8f8a80; text-transform: uppercase; }
+
+.hi-announce {
+  position: absolute; top: 116px; left: 50%; transform: translateX(-50%); max-width: min(780px, 90vw);
+  background: var(--red); color: var(--cream); font: 24px/1.2 var(--display); letter-spacing: 0.06em; text-align: center;
+  padding: 8px 20px; opacity: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.hi-announce.bad { background: var(--ink); color: var(--cream); font: 600 16px/1.35 var(--body); letter-spacing: 0.04em; }
+.hi-announce.show { animation: hiAnn var(--dur, 2.5s) forwards; }
+@keyframes hiAnn { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+.hi-card {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  background: #f2ede0; padding: 6px 10px 8px; box-shadow: 0 8px 22px rgba(0,0,0,0.35); border-top: 4px solid #024fa2;
+}
+.hi-card-lab { font: 600 10px var(--body); letter-spacing: 0.2em; color: #6b665d; margin-bottom: 4px; text-align: center; }
+.hi-cells { display: flex; gap: 2px; }
+.hi-sc { width: 34px; border: 1px solid #c9c1ae; text-align: center; background: #fbf8f0; }
+.hi-scn { display: block; font: 600 9px var(--body); color: #8f8a80; border-bottom: 1px solid #e1dac8; }
+.hi-scv { display: block; font: 22px/1.15 var(--display); color: #c9c1ae; }
+.hi-sc.now { outline: 2px solid var(--red); }
+.hi-sc.ace .hi-scv { color: #024fa2; }
+.hi-sc.bad .hi-scv { color: var(--red); text-decoration: line-through 2px; }
+.hi-sc.bad { background: #f6e3dc; }
+
+.hi-hint { position: absolute; left: 24px; bottom: 26px; max-width: 220px; font: 600 12px/1.4 var(--body); letter-spacing: 0.08em; color: var(--cream); text-shadow: 0 1px 3px rgba(0,0,0,0.7); text-transform: uppercase; }
+
+@media (max-width: 900px) {
+  .hi-sc { width: 22px; }
+  .hi-scv { font-size: 16px; }
+  .hi-cell { min-width: 90px; padding: 6px 10px; }
+  .hi-num { font-size: 32px; }
+}

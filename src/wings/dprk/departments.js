@@ -7,7 +7,7 @@ export const DEPARTMENTS = [
     title: 'HOLE IN ELEVEN',
     dept: 'Office of Sporting Records',
     blurb: 'The Leader plays his first round of golf. Every shot is a hole in one. You are the groundskeeper, and you have a flag.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · EIGHTEEN HOLES',
     medal: 'Order of the Obliging Green',
     poster: { motif: 'flag', slogan: '18 HOLES · 18 STROKES', sub: 'A NEW WORLD RECORD, AGAIN' },
   },
