@@ -31,7 +31,7 @@ export function buildGarage(scene) {
   scene.add(side);
   // the calendar, which is the only thing that changes in here
   const cal = liveCalendar();
-  cal.mesh.position.set(-3.6, 3.6, -4.45);
+  cal.mesh.position.set(2.4, 2.7, -4.45);
   scene.add(cal.mesh);
   // a bare bulb
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshBasicMaterial({ color: 0xfff1c8 }));

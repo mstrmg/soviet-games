@@ -198,7 +198,7 @@ export default function createSpareParts() {
     // it fits, which is to say it is now original
     fail.done = true;
     s.used.add(id);
-    s.fitted.push(item.name.toLowerCase());
+    s.fitted.push(/^Soviet/.test(item.name) ? item.name : item.name[0].toLowerCase() + item.name.slice(1));
     s.repairs++;
     audio.clang();
     s.shake = 0.6;
