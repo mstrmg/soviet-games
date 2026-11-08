@@ -126,6 +126,13 @@ export default function createHall() {
         d.hover += ((i === s.hovered ? 1 : 0) - d.hover) * Math.min(1, dt * 8);
         d.light.intensity = 10 + d.hover * 14;
         d.glow.material.opacity = 0.45 + d.hover * 0.25 + d.open * 0.3;
+        if (d.wing.arriving) {
+          d.light.intensity = 3 + d.hover * 4;
+          d.glow.material.opacity = 0.08;
+          d.boom.rotation.z = 0;
+          if (d.sign) d.sign.rotation.x = Math.sin(time * 2) * d.hover * 0.04; // a polite rattle
+          return;
+        }
         for (const { pivot, side } of d.leaves) pivot.rotation.y = side * Math.max(d.hover * 0.08, d.open * 1.3);
         // the barrier rises a little on hover, all the way on entry
         d.boom.rotation.z = -Math.max(d.hover * 0.12, d.lift ?? 0) * 1.35;
@@ -188,6 +195,17 @@ export default function createHall() {
     s.ctx.audio.click();
     const w = WINGS[i];
     const medals = w.DEPARTMENTS.filter((d) => s.ctx.save.hasMedal(d.id)).length;
+    if (w.arriving) {
+      tip.replaceChildren(
+        el('div.tip-kicker', {}, `FRATERNAL WING · ${w.country}`),
+        el('div.tip-title', {}, w.ministry.toUpperCase()),
+        el('div.tip-body', {}, w.DEPARTMENTS.map((d) => d.title).join(' · ')),
+        el('div.tip-status', {}, [el('span.tag', {}, HALL.arriving.tag)]),
+        el('div.tip-hint', {}, HALL.arriving.tip),
+      );
+      tip.classList.add('show');
+      return;
+    }
     tip.replaceChildren(
       el('div.tip-kicker', {}, `FRATERNAL WING · ${w.country}`),
       el('div.tip-title', {}, w.ministry.toUpperCase()),
@@ -203,6 +221,12 @@ export default function createHall() {
 
   function enter(i) {
     if (i == null || s.transition || s.ctx.manager.busy || document.querySelector('.memo-wrap')) return;
+    if (WINGS[i].arriving) {
+      s.ctx.audio.unlock();
+      s.ctx.audio.clack();
+      toast(s.ctx.layer, HALL.arriving.knock(WINGS[i]));
+      return;
+    }
     setHover(null);
     const { audio } = s.ctx;
     audio.unlock();
@@ -253,7 +277,7 @@ export default function createHall() {
         el('button.dir-item', { type: 'button', onclick: () => enter(i) }, [
           el('span.dir-num', {}, String(i + 1)),
           el('span.dir-name', {}, w.short),
-          el('span.dir-medal', {}, wingComplete(save, w) ? '★' : `${w.DEPARTMENTS.filter((d) => save.hasMedal(d.id)).length}/3`),
+          el('span.dir-medal', {}, w.arriving ? 'SOON' : wingComplete(save, w) ? '★' : `${w.DEPARTMENTS.filter((d) => save.hasMedal(d.id)).length}/3`),
         ]),
       ),
     ]);
@@ -266,7 +290,7 @@ export default function createHall() {
         el('h1.mh-title', {}, [HALL.masthead.title[0], el('br'), HALL.masthead.title[1]]),
         el('div.mh-sub', {}, HALL.masthead.sub),
       ]),
-      el('aside.hud-right', {}, [el('div.hud-label', {}, `VISAS · ${WINGS.filter((w) => wingComplete(save, w)).length}/${WINGS.length}`), el('div.hud-buttons', {}, [soundBtn])]),
+      el('aside.hud-right', {}, [el('div.hud-label', {}, `VISAS · ${WINGS.filter((w) => wingComplete(save, w)).length}/${WINGS.filter((w) => !w.arriving).length}`), el('div.hud-buttons', {}, [soundBtn])]),
       directory,
       el('div.notice-board.hall-notice', {}, [el('span.notice-label', {}, 'NOTICE'), s.ui.notice]),
       s.ui.tip,

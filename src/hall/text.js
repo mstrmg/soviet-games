@@ -20,7 +20,7 @@ export const HALL = {
     subject: 'Issue of a Fraternal Passport',
     body: [
       'Good day. Please look at the camera. Please do not look like that.',
-      'Your passport admits you to three fraternal nations. Each will record your visit. Each will record the others recording it.',
+      'Your passport admits you to several fraternal nations, with more arriving shortly. Each will record your visit. Each will record the others recording it.',
       'Your photograph will be kept up to date with how you ought to look.',
     ],
     button: 'ACCEPT PASSPORT',
@@ -31,6 +31,13 @@ export const HALL = {
     stamped: 'VISA STAMP ISSUED',
   },
   newStamp: (w) => `★ VISA ISSUED: ${w.short}`,
+  arriving: {
+    sign: ['DELEGATION ARRIVING SHORTLY', 'PLEASE CONTINUE TO WAIT WITH ENTHUSIASM'],
+    panel: 'FRATERNAL WING · DELEGATION ARRIVING SHORTLY',
+    tip: 'THE DELEGATION HAS NOT YET ARRIVED',
+    tag: 'ARRIVING SHORTLY',
+    knock: (w) => `The door to ${w.short} is locked. The delegation is arriving shortly. Shortly has not yet been defined.`,
+  },
 };
 
 export const PASSPORT = {

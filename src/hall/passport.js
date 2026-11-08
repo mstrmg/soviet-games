@@ -151,8 +151,8 @@ export function drawPhoto(canvas, rev) {
   }
 }
 
-function visa(lines, color, { fresh = false, tilt = -8 } = {}) {
-  return el(`div.visa${fresh ? '.fresh' : ''}`, { style: `--c:${color}; --tilt:${tilt}deg` }, [el('div.visa-a', {}, lines[0]), el('div.visa-b', {}, lines[1])]);
+function visa(lines, color, { fresh = false, tilt = -8, style = '' } = {}) {
+  return el(`div.visa${fresh ? '.fresh' : ''}${style ? `.visa-${style}` : ''}`, { style: `--c:${color}; --tilt:${tilt}deg` }, [el('div.visa-a', {}, lines[0]), el('div.visa-b', {}, lines[1])]);
 }
 
 /**
@@ -170,8 +170,8 @@ export function openPassport(layer, save, { freshWing = null, issuing = false } 
   const fields = PASSPORT.fields({ name: `Citizen No. ${no}`, issued: issued.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) });
   const stamps = [visa(PASSPORT.hallStamp, CSS.ink, { fresh: issuing, tilt: -6 })];
   WINGS.forEach((w, i) => {
-    if (wingComplete(save, w)) stamps.push(visa(w.stamp, w.colors.field === '#2a2a2a' ? '#3b5a8a' : w.colors.field, { fresh: freshWing === w.id, tilt: [9, -12, 5][i] }));
-    else stamps.push(el('div.visa-empty', {}, PASSPORT.emptySlot));
+    if (wingComplete(save, w)) stamps.push(visa(w.stamp, w.colors.field === '#2a2a2a' ? '#3b5a8a' : w.colors.field, { fresh: freshWing === w.id, tilt: [9, -12, 5, -3, 11][i % 5], style: w.stampStyle }));
+    else stamps.push(el(`div.visa-empty${w.arriving ? '.visa-soon' : ''}`, {}, w.arriving ? `${PASSPORT.emptySlot} · ${w.short} (arriving)` : PASSPORT.emptySlot));
   });
 
   let close;
@@ -204,8 +204,9 @@ export function passportBadge(save, onOpen) {
   const photo = el('canvas.ppb-photo', { width: 180, height: 220 });
   drawPhoto(photo, revisionOf(save));
   const n = WINGS.filter((w) => wingComplete(save, w)).length;
+  const open = WINGS.filter((w) => !w.arriving).length;
   return el('button.pp-badge', { type: 'button', onclick: onOpen, title: 'Your passport' }, [
     photo,
-    el('div.ppb-text', {}, [el('div.ppb-t', {}, 'PASSPORT'), el('div.ppb-s', {}, `${n}/${WINGS.length} VISAS`)]),
+    el('div.ppb-text', {}, [el('div.ppb-t', {}, 'PASSPORT'), el('div.ppb-s', {}, `${n}/${open} VISAS`)]),
   ]);
 }

@@ -44,6 +44,7 @@ src/
     sparrow-campaign/     China wing, game 3 (levels.js holds the days, quotas and words)
     trabant-list/         GDR wing, game 1 (list.js holds the goods, offers, events and downgrades)
     listening-post/       GDR wing, game 2 (file.js holds the routine, observations and words)
+  wings/dprk/, wings/cuba/  North Korea and Cuba wings (locked in the Hall until built; see wings.js `arriving`)
     press-conference/     GDR wing, game 3 (script.js holds the questions, phrases and endings)
   shared/
     sceneManager.js       one scene at a time; fade, dispose, load

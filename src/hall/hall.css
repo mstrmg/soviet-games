@@ -30,6 +30,11 @@
 .visa.fresh { animation: visaIn 0.2s 0.9s ease-in both; }
 @keyframes visaIn { from { transform: rotate(var(--tilt)) scale(2.6); opacity: 0; } to { transform: rotate(var(--tilt)) scale(1); opacity: 0.85; } }
 .visa-empty { width: 150px; height: 74px; border: 2px dotted rgba(0,0,0,0.22); border-radius: 8px; display: grid; place-items: center; font: 11px var(--type); color: rgba(0,0,0,0.35); text-align: center; padding: 6px; }
+.visa-soon { border-style: dashed; color: rgba(0,0,0,0.45); }
+.pp-visas { gap: 10px; }
+/* North Korea's stamp is enormous; Cuba's is smudged because the ink ran out in 1991 */
+.visa.visa-enormous { grid-column: 1 / -1; transform: rotate(var(--tilt)) scale(1.35); margin: 10px 0; }
+.visa.visa-smudged { opacity: 0.55; filter: blur(0.6px); }
 .pp-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; padding: 0 24px 18px; }
 
 .pp-badge {

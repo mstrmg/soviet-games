@@ -7,7 +7,7 @@ import { canvasTexture, rng, speckle, fitText } from '../shared/canvasTexture.js
 import { plasterTexture, bannerTexture, signTexture } from '../hub/textures.js';
 import { HALL } from './text.js';
 
-export const ROOM = { halfW: 15, back: -10, front: 18, height: 13 };
+export const ROOM = { halfW: 18, back: -10, front: 18, height: 13 };
 const DOOR_W = 3.2;
 const DOOR_H = 6;
 
@@ -77,11 +77,46 @@ function panelTexture(wing) {
     const fy = 40;
     const fw = 300;
     const fh = 200;
+    const star5 = (x, y, rad, rot = 0) => {
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = rot - Math.PI / 2 + (i * Math.PI) / 5;
+        const rr = i % 2 ? rad * 0.4 : rad;
+        ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+      }
+      ctx.fill();
+    };
     if (wing.id === 'gdr') {
       ['#1b1b1b', '#c1272d', '#e2b42c'].forEach((c, i) => {
         ctx.fillStyle = c;
         ctx.fillRect(fx, fy + (i * fh) / 3, fw, fh / 3);
       });
+    } else if (wing.id === 'dprk') {
+      ctx.fillStyle = '#024fa2';
+      ctx.fillRect(fx, fy, fw, fh);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(fx, fy + fh * 0.17, fw, fh * 0.66);
+      ctx.fillStyle = '#ed1c27';
+      ctx.fillRect(fx, fy + fh * 0.21, fw, fh * 0.58);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(fx + fw * 0.34, fy + fh / 2, fh * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ed1c27';
+      star5(fx + fw * 0.34, fy + fh / 2 + 3, fh * 0.21);
+    } else if (wing.id === 'cuba') {
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i % 2 ? '#ffffff' : '#002a8f';
+        ctx.fillRect(fx, fy + (i * fh) / 5, fw, fh / 5);
+      }
+      ctx.fillStyle = '#cf142b';
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(fx + fh * 0.87, fy + fh / 2);
+      ctx.lineTo(fx, fy + fh);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      star5(fx + fh * 0.3, fy + fh / 2 + 3, fh * 0.13);
     } else {
       ctx.fillStyle = wing.colors.field;
       ctx.fillRect(fx, fy, fw, fh);
@@ -135,8 +170,38 @@ function panelTexture(wing) {
     ctx.fillText(wing.ministry.toUpperCase(), w / 2, 370);
     ctx.font = `600 26px ${FONTS.body}`;
     ctx.fillStyle = CSS.greyLight;
-    ctx.fillText('FRATERNAL WING · ENTRY BY STAMP ONLY', w / 2, 450);
+    ctx.fillText(wing.arriving ? HALL.arriving.panel : 'FRATERNAL WING · ENTRY BY STAMP ONLY', w / 2, 450);
     speckle(ctx, w, h, 0.12, r, 0.02);
+  });
+}
+
+/** The sign across a locked door, in the national style of the delegation that has not arrived. */
+function arrivingTexture(wing) {
+  const dprk = wing.id === 'dprk';
+  return canvasTexture(1024, 256, (ctx, w, h) => {
+    const r = rng(wing.id.length * 13);
+    ctx.fillStyle = dprk ? '#b5121b' : '#3fa89a';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = dprk ? '#e8c060' : '#f2e8d5';
+    ctx.lineWidth = dprk ? 12 : 6;
+    ctx.strokeRect(14, 14, w - 28, h - 28);
+    ctx.fillStyle = dprk ? '#ffe9a8' : '#fbf6e8';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const [a, b] = HALL.arriving.sign;
+    ctx.font = `${fitText(ctx, a, w - 120, 96, FONTS.display)}px ${FONTS.display}`;
+    if (!dprk) {
+      // hand-painted: a little uneven, and the last word still being painted
+      ctx.save();
+      ctx.rotate(-0.012);
+      ctx.fillText(a, w / 2, h * 0.4);
+      ctx.restore();
+      ctx.globalAlpha = 0.55;
+    } else ctx.fillText(a, w / 2, h * 0.4);
+    ctx.font = `600 ${fitText(ctx, b, w - 160, 40, FONTS.body, '600')}px ${FONTS.body}`;
+    ctx.fillText(b, w / 2, h * 0.76);
+    ctx.globalAlpha = 1;
+    speckle(ctx, w, h, dprk ? 0.04 : 0.22, r, 0.03);
   });
 }
 
@@ -199,7 +264,10 @@ export function buildHall(scene, wings) {
     corridor: new THREE.MeshStandardMaterial({ color: 0x120e0d, side: THREE.BackSide, roughness: 1 }),
     glass: new THREE.MeshStandardMaterial({ color: 0xbfd6dc, transparent: true, opacity: 0.22, roughness: 0.05, metalness: 0.1, depthWrite: false }),
   };
-  const doorXs = wings.map((_, i) => (i - (wings.length - 1) / 2) * 9);
+  const spacing = wings.length > 3 ? 6.5 : 9;
+  const bannerX = wings.length > 3 ? 2.75 : 3.4;
+  const bannerW = wings.length > 3 ? 0.8 : 1.0;
+  const doorXs = wings.map((_, i) => (i - (wings.length - 1) / 2) * spacing);
 
   // ---- floor, walls, ceiling ------------------------------------------------------
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(halfW * 2, depth), new THREE.MeshStandardMaterial({ map: floorTexture(halfW * 2, depth, doorXs), roughness: 0.35, metalness: 0.05 }));
@@ -294,13 +362,13 @@ export function buildHall(scene, wings) {
     g.add(box(5.5, 2.9, 0.12, mats.gold, 0, DOOR_H + 2.1, 0.04));
     // hanging banners in the wing's colours
     for (const side of [-1, 1]) {
-      const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 4.2, 1, 4), flat(wing.id === 'gdr' ? PALETTE.black : PALETTE.red, { side: THREE.DoubleSide }));
-      cloth.position.set(side * 3.4, 6.3, 0.15);
+      const cloth = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, 4.2, 1, 4), flat(wing.id === 'gdr' ? PALETTE.black : PALETTE.red, { side: THREE.DoubleSide }));
+      cloth.position.set(side * bannerX, 6.3, 0.15);
       g.add(cloth);
-      const stripe = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.22), flat(wing.id === 'gdr' ? 0xe2b42c : PALETTE.gold, { side: THREE.DoubleSide }));
-      stripe.position.set(side * 3.4, 5.0, 0.16);
+      const stripe = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, 0.22), flat(wing.id === 'gdr' ? 0xe2b42c : PALETTE.gold, { side: THREE.DoubleSide }));
+      stripe.position.set(side * bannerX, 5.0, 0.16);
       g.add(stripe);
-      g.add(box(1.3, 0.08, 0.08, mats.brass, side * 3.4, 8.45, 0.16));
+      g.add(box(bannerW + 0.3, 0.08, 0.08, mats.brass, side * bannerX, 8.45, 0.16));
     }
     // light over the door
     const light = new THREE.PointLight(0xffe2b0, 10, 9, 1.6);
@@ -314,13 +382,26 @@ export function buildHall(scene, wings) {
     for (let k = 0; k < 9; k++) boom.add(box(0.5, 0.14, 0.14, k % 2 ? mats.white : mats.red, -0.25 - k * 0.5, 0, 0));
     g.add(boom);
     g.add(box(0.12, 0.9, 0.12, mats.grey, DOOR_W / 2 + 0.9 - 4.4, 0.45, 3)); // the rest for the arm
+    // a delegation that has not arrived: a sign across the doors, a rope, the light dimmed
+    let sign = null;
+    if (wing.arriving) {
+      sign = new THREE.Mesh(new THREE.PlaneGeometry(DOOR_W - 0.1, (DOOR_W - 0.1) / 4), new THREE.MeshStandardMaterial({ map: arrivingTexture(wing), roughness: 0.8 }));
+      sign.position.set(0, 3.3, 0.56);
+      sign.rotation.z = wing.id === 'cuba' ? 0.035 : 0;
+      g.add(sign);
+      for (const side of [-1, 1]) g.add(box(0.12, 1.0, 0.12, mats.brass, side * 1.3, 0.5, 1.4));
+      const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 6), mats.red);
+      rope.rotation.z = Math.PI / 2;
+      rope.position.set(0, 0.85, 1.4);
+      g.add(rope);
+    }
     scene.add(shadowed(g));
     const hit = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W + 1.6, DOOR_H + 3.6, 0.5), new THREE.MeshBasicMaterial({ visible: false }));
     hit.position.set(cx, (DOOR_H + 3.6) / 2, back + 0.6);
     hit.userData.door = i;
     scene.add(hit);
     refs.hitboxes.push(hit);
-    refs.doors.push({ wing, cx, group: g, leaves, glow, light, panelMat, boom, hit, hover: 0, open: 0 });
+    refs.doors.push({ wing, cx, group: g, leaves, glow, light, panelMat, boom, hit, sign, hover: 0, open: 0 });
   });
 
   // ---- passport control booth, right side --------------------------------------------
@@ -339,7 +420,7 @@ export function buildHall(scene, wings) {
   const guard = buildGuard(mats);
   guard.group.position.set(0, 0, -0.4);
   booth.add(guard.group);
-  booth.position.set(10, 0, 0.5);
+  booth.position.set(wings.length > 3 ? 11.2 : 10, 0, 0.5);
   booth.rotation.y = -0.54;
   scene.add(shadowed(booth));
   refs.guard = guard;
