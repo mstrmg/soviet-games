@@ -121,7 +121,7 @@ export const TEXT = {
     body: [
       'The Comandante will speak tonight. The address is expected to be brief, by the usual standard of seven hours.',
       'TYPE each key phrase as it is spoken; it appears on your pad. Press ENTER when a line calls for (APPLAUSE). Applause is spontaneous and compulsory.',
-      'Press ↑ on the beat to stay awake. Typing also helps. A gentleman in a grey suit will be keeping a separate record of the applause.',
+      'Press the UP ARROW on the beat to stay awake. Typing also helps. A gentleman in a grey suit will be keeping a separate record of the applause.',
     ],
     button: 'LOAD THE PAPER',
   },

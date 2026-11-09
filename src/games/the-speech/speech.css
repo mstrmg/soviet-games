@@ -1,7 +1,7 @@
 /* ---------- The Speech ---------- */
 .ts-hud { position: absolute; inset: 0; pointer-events: none; }
 .ts-hud button { pointer-events: auto; }
-.ts-hud ~ .toast { bottom: auto; top: 118px; }
+.ts-hud ~ .toast { bottom: auto; top: 118px; z-index: 5; }
 .ts-top {
   position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; z-index: 3;
   background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.4), 6px 6px 0 #002a8f;

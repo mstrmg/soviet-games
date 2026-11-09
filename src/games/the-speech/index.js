@@ -78,9 +78,6 @@ export default function createTheSpeech() {
       stage.position.set(0, 12, -2);
       stage.target.position.set(0, 2, -11.5);
       scene.add(stage, stage.target);
-      const deskLamp = new THREE.PointLight(0xffd9a0, 6, 5, 1.6);
-      deskLamp.position.set(1.4, 3.4, 11.4);
-      scene.add(deskLamp);
 
       s.plaza = buildPlaza(scene);
       s.plaza.setTime(0, scene);
@@ -102,7 +99,7 @@ export default function createTheSpeech() {
 
     update(rawDt, time) {
       if (!s.plaza) return;
-      const dt = Math.min(rawDt, 0.05) * s.dev.speed;
+      const dt = Math.min(rawDt, 0.1) * s.dev.speed;
       s.plaza.tick(dt, time, s.phase === 'talk');
       if (s.phase === 'idle' || s.phase === 'end') return;
       step(dt);
@@ -284,7 +281,6 @@ export default function createTheSpeech() {
       head.typed++;
       s.drowsy = Math.max(0, s.drowsy - 0.006);
       s.ctx.audio.clack();
-      s.plaza.type();
       if (head.typed >= head.text.length) {
         head.done = true;
         s.got++;
@@ -347,6 +343,7 @@ export default function createTheSpeech() {
     const { layer, save, audio, scope, manager } = s.ctx;
     s.phase = 'end';
     s.ui.cue.classList.remove('on');
+    s.ui.root.style.display = 'none';
     s.plaza.setTime(1, self.scene);
     s.drowsy = 0;
     renderLive();
@@ -412,10 +409,10 @@ export default function createTheSpeech() {
     const dot = el('i.ts-dot', {}, []);
     const lidFill = el('i', {}, []);
     const awake = el('div.ts-awake', {}, [
-      el('div.ts-lab', {}, 'Stay awake · ↑ on the beat'),
+      el('div.ts-lab', {}, 'Stay awake · up arrow on the beat'),
       el('div.ts-track', {}, [el('span.ts-zone', {}, []), dot]),
       el('div.ts-lidmeter', {}, [el('span', {}, 'Eyelids'), el('div', {}, [lidFill])]),
-      button('PINCH ↑', () => pinch(), { variant: 'dark' }),
+      button('PINCH (UP ARROW)', () => pinch(), { variant: 'dark' }),
     ]);
     const grey = el('div.ts-grey', {}, [el('b', {}, 'GREY SUIT'), el('span', {}, 'is listening')]);
     const card = el('div.ts-card', {}, '');

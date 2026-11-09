@@ -1,6 +1,6 @@
 // THE SPEECH — the plaza, seen from the press box. A stage, a podium, a small figure with a
 // large microphone; a crowd of instanced people who applaud when required; floodlights; a clock
-// tower; a sky that goes from night to dawn over seven hours. In the foreground, your typewriter.
+// tower; a sky that goes from night to dawn over seven hours.
 import * as THREE from 'three';
 import { flat } from '../../shared/renderer.js';
 import { canvasTexture, rng, fitText } from '../../shared/canvasTexture.js';
@@ -120,33 +120,8 @@ export function buildPlaza(scene) {
   for (let i = 0; i < 260; i++) flagOf.push(Math.floor(r() * people.length));
   g.add(flags);
 
-  // the press box: a desk, your typewriter, a lamp, a cup
-  const desk = add(new THREE.BoxGeometry(5, 0.12, 1.6), flat(0x5a3a22, { roughness: 0.7 }), 0, 2.6, 11.4);
-  desk.castShadow = false;
-  add(new THREE.BoxGeometry(5, 1.1, 0.1), flat(0x4a2e1a), 0, 2.0, 10.65);
-  const tw = new THREE.Group();
-  tw.position.set(0.15, 2.66, 11.5);
-  const black = flat(0x1b1a18, { roughness: 0.35, metalness: 0.2 });
-  add(new THREE.BoxGeometry(1.1, 0.22, 0.7), black, 0, 0.11, 0, tw);
-  for (let row = 0; row < 3; row++) {
-    for (let k = 0; k < 9; k++) add(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 8), flat(0xe8e0d0), -0.4 + k * 0.1 + row * 0.03, 0.24 + row * 0.03, 0.18 - row * 0.1, tw);
-  }
-  const roller = add(new THREE.CylinderGeometry(0.07, 0.07, 1.25, 12), black, 0, 0.32, -0.25, tw);
-  roller.rotation.z = Math.PI / 2;
-  const paper = add(new THREE.PlaneGeometry(0.75, 1), flat(0xf6f1e4, { roughness: 1, side: THREE.DoubleSide }), 0, 0.38, -0.3, tw);
-  paper.castShadow = false;
-  paper.rotation.x = -0.2;
-  const paperBase = { y: 0.38 };
-  g.add(tw);
-  add(new THREE.CylinderGeometry(0.08, 0.07, 0.16, 12), flat(0xf2ede0), -1.3, 2.74, 11.2);
-  add(new THREE.CylinderGeometry(0.075, 0.075, 0.01, 12), flat(0x2a1a10), -1.3, 2.82, 11.2);
-  const lampArm = add(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6), flat(0x2a4a3a), 1.6, 3.0, 11.5);
-  lampArm.rotation.z = 0.3;
-  add(new THREE.ConeGeometry(0.18, 0.22, 12, 1, true), flat(0x2a4a3a, { side: THREE.DoubleSide }), 1.5, 3.4, 11.4);
-
   const tmp = new THREE.Object3D();
   let clapT = 0;
-  let typed = 0;
 
   return {
     speakerArm: arm,
@@ -170,11 +145,6 @@ export function buildPlaza(scene) {
     },
     clap(seconds = 2) {
       clapT = seconds;
-    },
-    /** One character typed: the paper creeps up. */
-    type() {
-      typed++;
-      paper.position.y = paperBase.y + Math.min(0.35, typed * 0.0015);
     },
     tick(dt, t, talking) {
       clapT = Math.max(0, clapT - dt);
