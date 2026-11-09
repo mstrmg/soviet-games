@@ -207,12 +207,12 @@ export default function createRationBook() {
         }
         s.shop.handOver(a.id);
         audio.ding();
-        toast(layer, TEXT.queueOk(ITEMS[a.id].en, st.units, ahead), 3200);
+        say(TEXT.queueOk(ITEMS[a.id].en, st.units, ahead), 3200);
       } else {
         s.gone.add(a.id);
         s.ranOut++;
         audio.clack();
-        toast(layer, TEXT.queueNo(ITEMS[a.id].en, ahead), 3200);
+        say(TEXT.queueNo(ITEMS[a.id].en, ahead), 3200);
       }
     } else if (a.type === 'swap') {
       const sw = WEEKS[s.week].swaps[s.day];
@@ -220,10 +220,10 @@ export default function createRationBook() {
       s.pantry[sw.get] = (s.pantry[sw.get] || 0) + 1;
       s.swaps++;
       audio.click();
-      toast(layer, sw.line ? `${TEXT.swapOk(NEIGHBOURS[sw.who], ITEMS[sw.give].en, ITEMS[sw.get].en)} ${sw.line}` : TEXT.swapOk(NEIGHBOURS[sw.who], ITEMS[sw.give].en, ITEMS[sw.get].en), 3200);
+      say(sw.line ? `${TEXT.swapOk(NEIGHBOURS[sw.who], ITEMS[sw.give].en, ITEMS[sw.get].en)} ${sw.line}` : TEXT.swapOk(NEIGHBOURS[sw.who], ITEMS[sw.give].en, ITEMS[sw.get].en), 3200);
     } else {
       audio.tick();
-      toast(layer, TEXT.sit[(s.week + s.day) % TEXT.sit.length], 2800);
+      say(TEXT.sit[(s.week + s.day) % TEXT.sit.length], 2800);
     }
     renderHud();
     await wait(WAIT_MS);
@@ -241,6 +241,7 @@ export default function createRationBook() {
     s.shop.setDay('SÁBADO', 'CERRADO');
     const W = WEEKS[s.week];
     const res = cook(s.pantry, W.menu);
+    s.lastCook = res;
     s.pantry = res.pantry;
     s.points += res.points;
     for (const o of res.out) s.tally[o.kind]++;
@@ -321,7 +322,7 @@ export default function createRationBook() {
     const board = el('div.rb-top', {}, [
       el('div.rb-cell', {}, [el('div.rb-lab', {}, 'Week'), week, el('div.rb-info', {}, `of ${WEEKS.length}`)]),
       el('div.rb-cell', {}, [el('div.rb-lab', {}, 'Day'), day, el('div.rb-info', {}, 'Saturday: cooking')]),
-      el('div.rb-cell', {}, [el('div.rb-lab', {}, 'Meals that resemble the menu'), pts, el('div.rb-info', {}, `needed: ${POINTS_NEEDED} of 24`)]),
+      el('div.rb-cell', {}, [el('div.rb-lab', {}, 'Menu points'), pts, el('div.rb-info', {}, `needed: ${POINTS_NEEDED} of 24`)]),
     ]);
     const chalk = el('div.rb-chalk-rows', {}, []);
     const chalkboard = el('aside.rb-chalk', {}, [el('div.rb-chalk-head', {}, [el('b', {}, 'BODEGA Nº 14'), el('span', {}, 'lo que hay hoy')]), chalk]);
@@ -330,7 +331,7 @@ export default function createRationBook() {
     const rows = {};
     const bookList = el('ul', {}, ENTITLED.map((id) => (rows[id] = el('li', {}, [el('span', {}, ITEMS[id].es), el('em', {}, '1 ración'), el('i', {}, '')]))));
     const book = el('div.rb-book', {}, [el('div.rb-lab', {}, 'Libreta · this week'), bookList, el('div.rb-stamp', {}, TEXT.stamped)]);
-    const side = el('aside.rb-sidepanel', {}, [el('div.rb-lab', {}, 'The official menu · if cooked now'), menu, el('div.rb-lab', {}, 'The pantry'), pantry, book]);
+    const side = el('aside.rb-sidepanel', {}, [(s.uiMenuLab = el('div.rb-lab', {}, 'The official menu · if cooked now')), menu, el('div.rb-lab', {}, 'The pantry'), pantry, book]);
     const swap = el('div.rb-swap', {}, []);
     const sit = button('SIT ON THE STEP', () => act({ type: 'sit' }), { variant: 'dark' });
     const actions = el('div.rb-actions', {}, [swap, sit]);
@@ -347,6 +348,7 @@ export default function createRationBook() {
     u.week.textContent = String(s.week + 1);
     u.day.textContent = s.phase === 'day' ? DAYS_EN[s.day] : s.phase === 'saturday' ? 'Saturday' : '—';
     u.pts.textContent = String(s.points);
+    if (s.uiMenuLab) s.uiMenuLab.textContent = s.phase === 'saturday' ? 'The official menu · as cooked' : 'The official menu · if cooked now';
     const live = s.phase === 'day' && !s.busy;
     u.root.classList.toggle('busy', !live);
 
@@ -366,12 +368,12 @@ export default function createRationBook() {
     );
 
     // the menu, as it would be cooked right now
-    const pre = cook(s.pantry, W.menu);
+    const pre = s.phase === 'saturday' && s.lastCook ? s.lastCook : cook(s.pantry, W.menu);
     u.menu.replaceChildren(
       ...pre.out.map((o) =>
         el(`div.rb-dish.${o.kind}`, {}, [
           el('b', {}, o.dish.name),
-          el('div.rb-needs', {}, o.dish.needs.map((id) => el(`span.${(s.pantry[id] || 0) > 0 ? 'have' : SUBS[id] && (s.pantry[SUBS[id].item] || 0) > 0 ? 'sub' : 'miss'}`, {}, ITEMS[id].en))),
+          el('div.rb-needs', {}, o.dish.needs.map((id) => el(`span.${s.phase === 'saturday' ? (o.kind === 'none' ? 'miss' : 'have') : (s.pantry[id] || 0) > 0 ? 'have' : SUBS[id] && (s.pantry[SUBS[id].item] || 0) > 0 ? 'sub' : 'miss'}`, {}, ITEMS[id].en))),
           el('em', {}, o.kind === 'full' ? 'as on the menu' : o.kind === 'sub' ? 'resembles the menu' : 'described at the table'),
         ]),
       ),
@@ -398,6 +400,11 @@ export default function createRationBook() {
       u.swap.replaceChildren(el('div.rb-who', {}, [el('b', {}, NEIGHBOURS[sw.who]), el('span', {}, can ? `will give you ${ITEMS[sw.get].en} for your ${ITEMS[sw.give].en}.` : `has ${ITEMS[sw.get].en}, and wants ${ITEMS[sw.give].en}. You have none.`)]), b);
     } else u.swap.replaceChildren();
     u.actions.style.visibility = s.phase === 'day' ? 'visible' : 'hidden';
+  }
+
+  function say(text, ms) {
+    s.toast?.remove();
+    s.toast = toast(s.ctx.layer, text, ms);
   }
 
   function wait(ms) {

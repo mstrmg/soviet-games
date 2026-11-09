@@ -65,6 +65,7 @@
   content: 'ENTREGADO'; position: absolute; right: 22px; top: 0; font: 13px/1.5 var(--display); letter-spacing: 0.12em;
   color: rgba(90,60,170,0.75); border: 2px solid rgba(90,60,170,0.6); padding: 0 4px; transform: rotate(-4deg); animation: rbStamp 0.25s ease-out;
 }
+.rb-book li.ent em { opacity: 0.3; }
 .rb-stamp { display: none; }
 @keyframes rbStamp { from { transform: scale(1.8) rotate(-4deg); opacity: 0; } to { transform: scale(1) rotate(-4deg); opacity: 1; } }
 

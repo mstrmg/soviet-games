@@ -151,7 +151,7 @@ export const WEEKS = [
 export const START_PANTRY = { soap: 1, sugar: 1 };
 
 // A dish as on the menu scores 2, one that resembles it scores 1, one only described scores 0.
-export const POINTS_NEEDED = 14; // of 24
+export const POINTS_NEEDED = 12; // of 24; perfect planning with average luck makes about 16
 
 /** The odds, as written on the chalkboard by the queue. */
 export function oddsWord(p) {
