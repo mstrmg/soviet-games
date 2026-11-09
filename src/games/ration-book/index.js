@@ -15,7 +15,7 @@ const WAIT_MS = 1500;
 /** Cook the menu from a pantry: dishes that can be made as written first, then with substitutes. */
 export function cook(pantry, menu) {
   const p = { ...pantry };
-  const out = menu.map((dish) => ({ dish, kind: 'none', as: '', missing: '' }));
+  const out = menu.map((dish) => ({ dish, kind: 'none', as: '', missing: '', subbed: [] }));
   const has = (id) => (p[id] || 0) > 0;
   out.forEach((o) => {
     if (o.dish.needs.every(has)) {
@@ -34,6 +34,7 @@ export function cook(pantry, menu) {
       } else if (SUBS[id] && (take[SUBS[id].item] || 0) > 0) {
         take[SUBS[id].item]--;
         plan.push(SUBS[id].item);
+        o.subbed.push(id);
         o.as = SUBS[id].as;
       } else {
         o.missing = ITEMS[id].en;
@@ -373,7 +374,7 @@ export default function createRationBook() {
       ...pre.out.map((o) =>
         el(`div.rb-dish.${o.kind}`, {}, [
           el('b', {}, o.dish.name),
-          el('div.rb-needs', {}, o.dish.needs.map((id) => el(`span.${s.phase === 'saturday' ? (o.kind === 'none' ? 'miss' : 'have') : (s.pantry[id] || 0) > 0 ? 'have' : SUBS[id] && (s.pantry[SUBS[id].item] || 0) > 0 ? 'sub' : 'miss'}`, {}, ITEMS[id].en))),
+          el('div.rb-needs', {}, o.dish.needs.map((id) => el(`span.${s.phase === 'saturday' ? (o.kind === 'none' ? 'miss' : o.subbed.includes(id) ? 'sub' : 'have') : (s.pantry[id] || 0) > 0 ? 'have' : SUBS[id] && (s.pantry[SUBS[id].item] || 0) > 0 ? 'sub' : 'miss'}`, {}, ITEMS[id].en))),
           el('em', {}, o.kind === 'full' ? 'as on the menu' : o.kind === 'sub' ? 'resembles the menu' : 'described at the table'),
         ]),
       ),
