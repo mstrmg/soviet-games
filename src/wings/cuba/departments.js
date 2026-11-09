@@ -17,7 +17,7 @@ export const DEPARTMENTS = [
     title: 'RATION BOOK',
     dept: 'Office of Theoretical Supply',
     blurb: 'The book lists what the family is entitled to. The shop lists what it has. Plan the month.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · FOUR WEEKS',
     medal: 'Medal of Full Nutrition (On Paper)',
     poster: { motif: 'book', slogan: 'EVERYONE FED!', sub: 'ACCORDING TO THE BOOK' },
   },

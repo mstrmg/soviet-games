@@ -46,6 +46,7 @@ src/
     mass-games/           North Korea wing, game 2 (images.js holds the card art, page orders and words)
     lights-of-the-capital/ North Korea wing, game 3 (grid.js holds the districts, nights, cameras and words)
     spare-parts/           Cuba wing, game 1 (parts.js holds the decades, junk, tags and words)
+    ration-book/           Cuba wing, game 2 (book.js holds the weeks, shop, swaps, menu and words)
     trabant-list/         GDR wing, game 1 (list.js holds the goods, offers, events and downgrades)
     listening-post/       GDR wing, game 2 (file.js holds the routine, observations and words)
   wings/dprk/, wings/cuba/  North Korea and Cuba wings: departments.js, index.js, dress.js (lobby props via LOBBY.dress)
