@@ -1,5 +1,4 @@
 // CUBA WING · Ministry of Permanent Revolution. Same pattern as hub/departments.js.
-// The three games are placeholders (UNDER CONSTRUCTION) until each is built.
 export const DEPARTMENTS = [
   {
     id: 'spare-parts',
@@ -27,7 +26,7 @@ export const DEPARTMENTS = [
     title: 'THE SPEECH',
     dept: 'Office of the Stenographer',
     blurb: 'Seven hours. Every word recorded. Every applause line applauded. Stay awake.',
-    status: 'UNDER CONSTRUCTION',
+    status: 'OPEN · SEVEN HOURS',
     medal: 'Order of the Open Eyes',
     poster: { motif: 'mic', slogan: 'HE WILL CONTINUE!', sub: 'HOUR SIX OF SEVEN' },
   },

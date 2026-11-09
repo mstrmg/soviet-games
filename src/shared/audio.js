@@ -167,6 +167,20 @@ export const audio = {
     noise(0.5, { type: 'bandpass', freq: 1800, q: 1, gain: 0.08, attack: 0.05 });
   },
 
+  /** A crowd applauding: many small claps, spontaneously, for as long as required. */
+  applause(duration = 1.8, density = 60) {
+    for (let i = 0; i < density; i++) {
+      noise(0.03, { type: 'bandpass', freq: 1200 + Math.random() * 1800, q: 1.4, gain: 0.05 + Math.random() * 0.06, when: Math.random() * duration * (0.6 + Math.random() * 0.4) });
+    }
+    noise(duration, { type: 'bandpass', freq: 1600, q: 0.7, gain: 0.05, attack: 0.15 });
+  },
+
+  /** A snore. Brief, but noticed. */
+  snore() {
+    tone(90, 0.9, { type: 'sawtooth', gain: 0.05, attack: 0.3, slideTo: 70 });
+    noise(0.9, { type: 'lowpass', freq: 400, gain: 0.12, attack: 0.3 });
+  },
+
   /** Hot iron meeting cold air, or a cold furnace refusing. */
   hiss() {
     noise(0.6, { type: 'highpass', freq: 4500, gain: 0.12, attack: 0.02 });

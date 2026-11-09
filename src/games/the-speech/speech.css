@@ -1,0 +1,102 @@
+/* ---------- The Speech ---------- */
+.ts-hud { position: absolute; inset: 0; pointer-events: none; }
+.ts-hud button { pointer-events: auto; }
+.ts-hud ~ .toast { bottom: auto; top: 118px; }
+.ts-top {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; z-index: 3;
+  background: var(--black); padding: 2px; box-shadow: 0 10px 24px rgba(0,0,0,0.4), 6px 6px 0 #002a8f;
+}
+.ts-cell { background: var(--ink); padding: 8px 18px 7px; text-align: center; min-width: 130px; }
+.ts-lab { font: 600 11px var(--body); letter-spacing: 0.18em; color: #b9b4aa; text-transform: uppercase; }
+.ts-num { font: 36px/1 var(--display); color: var(--cream); letter-spacing: 0.04em; }
+.ts-num.bad { color: var(--red); }
+.ts-info { font: 600 11px var(--body); letter-spacing: 0.1em; color: #8f8a80; text-transform: uppercase; max-width: 220px; }
+
+/* the speech, as subtitles */
+.ts-subwrap { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: min(820px, 54vw); z-index: 3; }
+.ts-sub {
+  background: rgba(14,12,10,0.86); color: #8a857c; padding: 14px 20px 16px; min-height: 96px; box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+  font: 24px/1.35 var(--type); border-top: 3px solid var(--red);
+}
+.ts-sub span { margin-right: 0.32em; display: inline-block; transition: opacity 0.15s; }
+.ts-sub span.off { opacity: 0; }
+.ts-sub span.on { color: var(--cream); }
+.ts-sub span.key { color: var(--gold); border-bottom: 2px solid var(--gold); }
+.ts-sub span.key.off { opacity: 0; }
+.ts-sub span.got { color: #8fd18a; border-bottom-color: #8fd18a; }
+.ts-sub span.miss { color: #f08a7a; border-bottom-color: #f08a7a; text-decoration: line-through; }
+.ts-cue {
+  position: absolute; left: 50%; top: -56px; transform: translateX(-50%) scale(0.8); opacity: 0; transition: all 0.15s;
+  background: var(--red); color: var(--cream); padding: 6px 18px 4px; text-align: center; box-shadow: 5px 5px 0 var(--black); white-space: nowrap;
+}
+.ts-cue b { font: 30px/1 var(--display); letter-spacing: 0.08em; margin-right: 10px; }
+.ts-cue span { font: 600 13px var(--body); letter-spacing: 0.14em; text-transform: uppercase; }
+.ts-cue.on { opacity: 1; transform: translateX(-50%) scale(1); animation: tsFlash 0.5s infinite alternate; }
+.ts-cue.hit { background: #2f8a3a; animation: none; }
+@keyframes tsFlash { to { background: #8a0f14; } }
+.ts-appl { position: absolute; right: -8px; top: -50px; }
+.ts-appl .btn { padding: 6px 12px; font-size: 18px; }
+
+/* the stenographer's pad */
+.ts-pad {
+  position: absolute; left: 18px; bottom: 22px; width: 290px; z-index: 3; color: var(--ink); padding: 10px 14px 12px;
+  background: #f6f1e4 repeating-linear-gradient(transparent 0 23px, #b9cbe0 23px 24px); box-shadow: 0 10px 24px rgba(0,0,0,0.5); border-top: 22px solid #c1272d;
+}
+.ts-pad .ts-lab { color: #f2ede0; margin: -28px 0 10px; }
+.ts-padtext { font: 26px/1.2 var(--type); min-height: 64px; word-break: break-word; }
+.ts-padtext b { font-weight: normal; color: var(--ink); text-decoration: underline; text-decoration-color: #2f8a3a; }
+.ts-padtext span { color: #a8a294; }
+.ts-padtext em { font: 15px var(--type); color: #8f8a80; font-style: normal; }
+.ts-pad.live .ts-padtext span:first-of-type::first-letter { color: var(--red); }
+.ts-bar { height: 6px; background: #d9d1bd; margin-top: 6px; }
+.ts-bar i { display: block; height: 100%; background: var(--red); width: 0; }
+.ts-more { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); height: 14px; margin-top: 3px; }
+.ts-pad.err { animation: tsErr 0.2s; }
+@keyframes tsErr { 50% { transform: translateX(-4px); } }
+
+/* staying awake */
+.ts-awake {
+  position: absolute; right: 18px; bottom: 22px; width: 250px; z-index: 3; padding: 10px 12px 12px;
+  background: rgba(20,18,16,0.92); box-shadow: 0 10px 24px rgba(0,0,0,0.5); border-top: 3px solid var(--gold);
+}
+.ts-track { position: relative; height: 26px; margin: 8px 0; background: #3a3630; border-radius: 13px; }
+.ts-zone { position: absolute; left: 42%; width: 16%; top: 0; bottom: 0; background: #2f8a3a; border-radius: 4px; }
+.ts-dot { position: absolute; top: 3px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: var(--cream); box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+.ts-awake.ok .ts-track { box-shadow: 0 0 0 3px #8fd18a; }
+.ts-awake.miss .ts-track { box-shadow: 0 0 0 3px var(--red); }
+.ts-lidmeter { display: flex; align-items: center; gap: 8px; font: 600 11px var(--body); color: #b9b4aa; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
+.ts-lidmeter div { flex: 1; height: 8px; background: #3a3630; }
+.ts-lidmeter i { display: block; height: 100%; width: 0; background: var(--gold); }
+.ts-lidmeter i.bad { background: var(--red); }
+.ts-awake .btn { width: 100%; }
+
+.ts-grey {
+  position: absolute; right: 18px; top: 100px; background: #6a6a6a; color: #f2ede0; padding: 6px 12px; z-index: 3;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5); text-align: center;
+}
+.ts-grey b { display: block; font: 18px/1 var(--display); letter-spacing: 0.1em; }
+.ts-grey span { font: 12px var(--type); }
+.ts-grey.writing span::after { content: ' … and writing'; color: #ffd0c8; }
+.ts-grey.writing { background: #8a3a3a; }
+
+.ts-card {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(0.9); opacity: 0; transition: all 0.35s; z-index: 4;
+  font: 44px/1.1 var(--display); letter-spacing: 0.08em; color: var(--cream); text-align: center; text-shadow: 0 3px 12px #000;
+  background: rgba(193,39,45,0.85); padding: 14px 30px 10px; max-width: 80vw;
+}
+.ts-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* eyelids */
+.ts-lid { position: absolute; left: -10%; width: 120%; height: 0; background: #050404; z-index: 2; }
+.ts-lid.top { top: 0; border-radius: 0 0 50% 50% / 0 0 40% 40%; }
+.ts-lid.bot { bottom: 0; border-radius: 50% 50% 0 0 / 40% 40% 0 0; }
+.ts-dim { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 1; }
+.ts-zzz { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 4; font: 64px var(--display); color: #8f8a80; letter-spacing: 0.3em; opacity: 0; transition: opacity 0.3s; }
+.ts-zzz.on { opacity: 1; animation: tsZ 1.4s infinite; }
+@keyframes tsZ { 50% { transform: translate(-50%, -60%); } }
+
+@media (max-width: 1100px) {
+  .ts-subwrap { width: 92vw; bottom: 190px; }
+  .ts-pad { width: 44vw; }
+  .ts-awake { width: 44vw; }
+}
